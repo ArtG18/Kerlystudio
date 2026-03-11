@@ -10,14 +10,18 @@ app.secret_key = "supersecretkey"
 # ---------------- DATABASE ----------------
 
 def get_connection():
-    return psycopg2.connect(os.environ["DATABASE_URL"])
+    database_url = os.environ["DATABASE_URL"]
+
+    if database_url.startswith("postgres://"):
+        database_url = database_url.replace("postgres://", "postgresql://", 1)
+
+    return psycopg2.connect(database_url, sslmode="require")
 
 
 def init_db():
     conn = get_connection()
     cursor = conn.cursor()
 
-    # Tabla citas
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS citas (
         id SERIAL PRIMARY KEY,
@@ -31,7 +35,6 @@ def init_db():
     )
     """)
 
-    # Tabla usuarios
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS usuarios (
         id SERIAL PRIMARY KEY,
@@ -40,7 +43,6 @@ def init_db():
     )
     """)
 
-    # Crear admin si no existe
     cursor.execute("SELECT 1 FROM usuarios WHERE username = %s", ("admin",))
     if not cursor.fetchone():
         password_hash = generate_password_hash("1234")
@@ -54,9 +56,6 @@ def init_db():
     conn.close()
 
 
-# Inicializar base de datos al arrancar
-init_db()
-
 # ---------------- HOME ----------------
 
 @app.route("/")
@@ -68,6 +67,8 @@ def home():
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
+    init_db()
+
     if request.method == "POST":
         user = request.form["username"]
         password = request.form["password"]
@@ -98,6 +99,8 @@ def logout():
 
 @app.route("/dashboard", methods=["GET", "POST"])
 def dashboard():
+    init_db()
+
     if "user" not in session:
         return redirect("/login")
 
