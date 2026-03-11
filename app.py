@@ -9,12 +9,10 @@ app.secret_key = "supersecretkey"
 
 # ---------------- DATABASE ----------------
 
+import os
+
 def get_connection():
-    return psycopg2.connect(
-        host="localhost",
-        database="kerlystudio",
-        user="postgres",
-        password="180105."
+    return psycopg2.connect(os.environ.get("DATABASE_URL"))
     )
 
 def init_db():
