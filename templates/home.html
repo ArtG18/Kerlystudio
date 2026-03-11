@@ -3,7 +3,7 @@
 
 <style>
 .hero {
-    height: 90vh;
+    min-height: 75vh;
     background: linear-gradient(rgba(0,0,0,0.55), rgba(0,0,0,0.55)),
                 url("{{ url_for('static', filename='portada.jpeg') }}") center/cover no-repeat;
     display: flex;
@@ -12,17 +12,25 @@
     text-align: center;
     color: white;
     border-radius: 20px;
+    padding: 40px 20px;
+}
+
+.hero-content {
+    max-width: 700px;
+    width: 100%;
 }
 
 .hero h1 {
     font-size: 4rem;
     font-weight: 700;
+    margin-bottom: 15px;
 }
 
 .hero p {
-    font-size: 1.3rem;
-    margin-top: 15px;
-    opacity: 0.9;
+    font-size: 1.25rem;
+    margin-top: 10px;
+    margin-bottom: 0;
+    opacity: 0.95;
 }
 
 .btn-main {
@@ -32,6 +40,9 @@
     border-radius: 40px;
     font-weight: 500;
     transition: 0.3s;
+    border: none;
+    display: inline-block;
+    text-decoration: none;
 }
 
 .btn-main:hover {
@@ -40,26 +51,105 @@
     color: white;
 }
 
+.gallery-section {
+    margin-top: 40px;
+}
+
 .gallery img {
     width: 100%;
+    height: 320px;
+    object-fit: cover;
     border-radius: 20px;
     transition: 0.4s;
     box-shadow: 0 10px 25px rgba(0,0,0,0.08);
 }
 
 .gallery img:hover {
-    transform: scale(1.05);
+    transform: scale(1.03);
 }
 
 .section-title {
     font-weight: 600;
     margin-bottom: 30px;
 }
+
+@media (max-width: 992px) {
+    .hero {
+        min-height: 65vh;
+    }
+
+    .hero h1 {
+        font-size: 3rem;
+    }
+
+    .hero p {
+        font-size: 1.1rem;
+    }
+
+    .gallery img {
+        height: 280px;
+    }
+}
+
+@media (max-width: 768px) {
+    .hero {
+        min-height: 60vh;
+        padding: 30px 18px;
+        border-radius: 16px;
+    }
+
+    .hero h1 {
+        font-size: 2.4rem;
+    }
+
+    .hero p {
+        font-size: 1rem;
+        line-height: 1.5;
+    }
+
+    .btn-main {
+        width: 100%;
+        max-width: 280px;
+        padding: 12px 20px;
+        margin-top: 24px;
+    }
+
+    .gallery img {
+        height: 240px;
+        border-radius: 16px;
+    }
+
+    .gallery-section {
+        margin-top: 30px;
+    }
+}
+
+@media (max-width: 480px) {
+    .hero {
+        min-height: 55vh;
+        padding: 25px 15px;
+    }
+
+    .hero h1 {
+        font-size: 2rem;
+    }
+
+    .hero p {
+        font-size: 0.95rem;
+    }
+
+    .gallery img {
+        height: 220px;
+    }
+
+    .section-title {
+        font-size: 1.3rem;
+    }
+}
 </style>
 
-<!-- HERO -->
 <div class="hero mb-5">
-    <div>
+    <div class="hero-content">
         <h1>Kerly Studio</h1>
         <p>Agenda tu cita y gestiona tu negocio de forma profesional</p>
         <a href="{{ url_for('login') }}" class="btn btn-main mt-4">
@@ -68,18 +158,17 @@
     </div>
 </div>
 
-<!-- GALERÍA -->
-<div class="container">
+<div class="gallery-section">
     <h3 class="text-center section-title">Nuestros Trabajos</h3>
 
     <div class="row gallery g-4">
-        <div class="col-md-4">
+        <div class="col-12 col-md-4">
             <img src="{{ url_for('static', filename='foto1.jpeg') }}" alt="Trabajo 1">
         </div>
-        <div class="col-md-4">
+        <div class="col-12 col-md-4">
             <img src="{{ url_for('static', filename='foto2.jpeg') }}" alt="Trabajo 2">
         </div>
-        <div class="col-md-4">
+        <div class="col-12 col-md-4">
             <img src="{{ url_for('static', filename='foto3.jpeg') }}" alt="Trabajo 3">
         </div>
     </div>

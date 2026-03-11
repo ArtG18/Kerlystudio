@@ -1,17 +1,139 @@
 {% extends "base.html" %}
 {% block content %}
 
-<div class="row justify-content-center mt-5">
-<div class="col-md-4">
-<div class="card p-4 text-center">
-<h3>Iniciar Sesión</h3>
-<form method="POST">
-<input class="form-control mb-3" name="username" placeholder="Usuario" required>
-<input class="form-control mb-3" type="password" name="password" placeholder="Contraseña" required>
-<button class="btn btn-pink w-100">Entrar</button>
-</form>
-</div>
-</div>
+<style>
+.login-wrapper {
+    min-height: 80vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.login-card {
+    width: 100%;
+    max-width: 420px;
+    padding: 35px 28px;
+    border-radius: 22px;
+    background: white;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+}
+
+.login-icon {
+    width: 70px;
+    height: 70px;
+    background: #ffe0ec;
+    color: #ff4d94;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 18px;
+    font-size: 1.6rem;
+}
+
+.login-title {
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: #222;
+}
+
+.login-subtitle {
+    color: #777;
+    font-size: 0.95rem;
+    margin-bottom: 25px;
+}
+
+.form-control {
+    border-radius: 14px;
+    padding: 12px 15px;
+    border: 1px solid #e5d6df;
+}
+
+.form-control:focus {
+    border-color: #ff4d94;
+    box-shadow: 0 0 0 0.2rem rgba(255, 77, 148, 0.15);
+}
+
+.btn-login {
+    background: #ff4d94;
+    color: white;
+    border: none;
+    border-radius: 30px;
+    padding: 12px;
+    font-weight: 600;
+    transition: 0.3s;
+}
+
+.btn-login:hover {
+    background: #e60073;
+    color: white;
+    transform: translateY(-2px);
+}
+
+.back-link {
+    display: inline-block;
+    margin-top: 18px;
+    color: #ff4d94;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.back-link:hover {
+    color: #e60073;
+}
+
+@media (max-width: 768px) {
+    .login-wrapper {
+        min-height: 75vh;
+        padding: 10px 0;
+    }
+
+    .login-card {
+        padding: 28px 20px;
+        border-radius: 18px;
+    }
+
+    .login-title {
+        font-size: 1.5rem;
+    }
+
+    .login-subtitle {
+        font-size: 0.9rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .login-card {
+        padding: 24px 16px;
+    }
+
+    .login-icon {
+        width: 60px;
+        height: 60px;
+        font-size: 1.3rem;
+    }
+}
+</style>
+
+<div class="login-wrapper">
+    <div class="login-card text-center">
+        <div class="login-icon">
+            <i class="fa-solid fa-user"></i>
+        </div>
+
+        <h3 class="login-title">Iniciar Sesión</h3>
+        <p class="login-subtitle">Accede a tu panel de administración</p>
+
+        <form method="POST">
+            <input class="form-control mb-3" name="username" placeholder="Usuario" required>
+            <input class="form-control mb-3" type="password" name="password" placeholder="Contraseña" required>
+            <button class="btn btn-login w-100">Entrar</button>
+        </form>
+
+        <a href="{{ url_for('home') }}" class="back-link">
+            <i class="fa-solid fa-arrow-left me-1"></i> Volver al inicio
+        </a>
+    </div>
 </div>
 
 {% endblock %}

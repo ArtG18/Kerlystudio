@@ -1,62 +1,269 @@
 {% extends "base.html" %}
 {% block content %}
 
-<div class="container mt-4">
+<style>
+.dashboard-title {
+    color: #e60073;
+    font-weight: 700;
+    margin-bottom: 24px;
+}
 
-    <h2 class="mb-4" style="color:#e60073;">Panel de Citas - Kerly Studio</h2>
+.stats-card {
+    background: #ffe6f0;
+    border-radius: 18px;
+    padding: 20px;
+    text-align: center;
+    height: 100%;
+}
+
+.stats-card h6 {
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #555;
+}
+
+.stats-card h3 {
+    margin: 0;
+    font-weight: 700;
+}
+
+.section-card {
+    background: #fff0f5;
+    border-radius: 20px;
+    padding: 24px;
+    margin-bottom: 24px;
+}
+
+.section-title {
+    color: #e60073;
+    font-weight: 700;
+    margin-bottom: 18px;
+}
+
+.form-label {
+    font-weight: 600;
+    color: #555;
+    margin-bottom: 6px;
+}
+
+.form-control,
+.form-select {
+    border-radius: 14px;
+    border: 1px solid #f1c7d9;
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: #ff4d94;
+    box-shadow: 0 0 0 0.2rem rgba(255, 77, 148, 0.15);
+}
+
+.services-select {
+    min-height: 140px;
+}
+
+.table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.table {
+    min-width: 900px;
+    vertical-align: middle;
+}
+
+.table thead th {
+    background: #ffb6c1;
+    color: #5a2740;
+    border: none;
+    white-space: nowrap;
+}
+
+.table tbody td {
+    white-space: nowrap;
+}
+
+.actions-group {
+    display: flex;
+    gap: 6px;
+    flex-wrap: nowrap;
+}
+
+.actions-group form {
+    margin: 0;
+}
+
+.action-btn {
+    min-width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.status-badge {
+    padding: 8px 12px;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    display: inline-block;
+}
+
+.status-confirmada {
+    background: #dff5e8;
+    color: #198754;
+}
+
+.status-pendiente {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.status-cancelada {
+    background: #f8d7da;
+    color: #842029;
+}
+
+#calendar {
+    width: 100%;
+    min-height: 500px;
+}
+
+.logout-btn {
+    border-radius: 30px;
+    padding: 10px 20px;
+}
+
+@media (max-width: 768px) {
+    .dashboard-title {
+        font-size: 1.5rem;
+        text-align: center;
+    }
+
+    .section-card {
+        padding: 18px;
+        border-radius: 16px;
+    }
+
+    .stats-card {
+        padding: 18px;
+    }
+
+    .table {
+        min-width: 760px;
+    }
+
+    #calendar {
+        min-height: 420px;
+    }
+
+    .fc .fc-toolbar {
+        flex-direction: column;
+        gap: 10px;
+        align-items: stretch;
+    }
+
+    .fc .fc-toolbar-title {
+        font-size: 1.1rem;
+        text-align: center;
+    }
+
+    .fc .fc-button {
+        font-size: 0.85rem;
+        padding: 0.35rem 0.55rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .dashboard-title {
+        font-size: 1.3rem;
+    }
+
+    .section-card {
+        padding: 14px;
+    }
+
+    .stats-card h3 {
+        font-size: 1.5rem;
+    }
+
+    .services-select {
+        min-height: 120px;
+    }
+
+    #calendar {
+        min-height: 380px;
+    }
+}
+</style>
+
+<div class="container-fluid mt-3 mt-md-4">
+
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4 gap-3">
+        <h2 class="dashboard-title mb-0">Panel de Citas - Kerly Studio</h2>
+        <a href="{{ url_for('logout') }}" class="btn btn-outline-danger logout-btn">
+            Cerrar sesión
+        </a>
+    </div>
 
     <!-- Estadísticas -->
-    <div class="row mb-4">
-        <div class="col-md-4">
-            <div class="card p-3 text-center" style="background:#ffe6f0; border-radius:15px;">
+    <div class="row g-3 mb-4">
+        <div class="col-12 col-md-4">
+            <div class="stats-card">
                 <h6>Citas Hoy</h6>
                 <h3 style="color:#e60073;">{{ citas_hoy }}</h3>
             </div>
         </div>
 
-        <div class="col-md-4">
-            <div class="card p-3 text-center" style="background:#ffe6f0; border-radius:15px;">
+        <div class="col-12 col-md-4">
+            <div class="stats-card">
                 <h6>Confirmadas</h6>
                 <h3 style="color:#ff4d94;">{{ confirmadas }}</h3>
             </div>
         </div>
 
-        <div class="col-md-4">
-            <div class="card p-3 text-center" style="background:#ffe6f0; border-radius:15px;">
+        <div class="col-12 col-md-4">
+            <div class="stats-card">
                 <h6>Canceladas</h6>
                 <h3 style="color:#d9534f;">{{ canceladas }}</h3>
             </div>
         </div>
     </div>
 
-
-    <!-- Formulario Agendar -->
-    <div class="card p-4 mb-4" style="background:#fff0f5; border-radius:20px;">
-        <h5 style="color:#e60073;">Agendar Nueva Cita</h5>
+    <!-- Formulario -->
+    <div class="section-card">
+        <h5 class="section-title">Agendar Nueva Cita</h5>
 
         <form method="POST">
             <input type="hidden" name="accion" value="agendar">
 
-            <div class="row mb-2">
-                <div class="col">
+            <div class="row g-3 mb-3">
+                <div class="col-12 col-md-6">
+                    <label class="form-label">Nombre</label>
                     <input class="form-control" name="nombre" placeholder="Nombre" required>
                 </div>
-                <div class="col">
+                <div class="col-12 col-md-6">
+                    <label class="form-label">Teléfono</label>
                     <input class="form-control" name="telefono" placeholder="Teléfono" required>
                 </div>
             </div>
 
-            <div class="row mb-2">
-                <div class="col">
+            <div class="row g-3 mb-3">
+                <div class="col-12 col-md-6">
+                    <label class="form-label">Fecha</label>
                     <input type="date" class="form-control" name="fecha" required>
                 </div>
-                <div class="col">
+                <div class="col-12 col-md-6">
+                    <label class="form-label">Hora</label>
                     <input type="time" class="form-control" name="hora" required>
                 </div>
             </div>
 
-            <div class="mb-2">
-                <select class="form-control" name="manicurista" required>
+            <div class="mb-3">
+                <label class="form-label">Manicurista</label>
+                <select class="form-select" name="manicurista" required>
                     <option value="">Seleccionar manicurista</option>
                     <option value="Kerly">Kerly</option>
                     <option value="Adri">Adri</option>
@@ -66,8 +273,8 @@
             </div>
 
             <div class="mb-3">
-                <label>Servicios (selección múltiple)</label>
-                <select name="servicios" multiple class="form-control" style="height:120px; overflow-y:scroll;">
+                <label class="form-label">Servicios (selección múltiple)</label>
+                <select name="servicios" multiple class="form-select services-select">
                     <option value="Manicure">Manicure</option>
                     <option value="Pedicure">Pedicure</option>
                     <option value="Acrílicas">Acrílicas</option>
@@ -80,78 +287,82 @@
                 </select>
             </div>
 
-            <button class="btn btn-pink w-100" style="background:#e60073; color:white;">Agendar Cita</button>
+            <button class="btn btn-pink w-100">Agendar Cita</button>
         </form>
     </div>
 
+    <!-- Tabla -->
+    <div class="section-card">
+        <h5 class="section-title">Citas Agendadas</h5>
 
-    <!-- Tabla de citas -->
-    <div class="card p-4 mb-4" style="background:#fff0f5; border-radius:20px;">
-        <h5 style="color:#e60073;">Citas Agendadas</h5>
+        <div class="table-wrap">
+            <table class="table table-striped align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Teléfono</th>
+                        <th>Fecha</th>
+                        <th>Hora</th>
+                        <th>Manicurista</th>
+                        <th>Servicios</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for cita in citas %}
+                    <tr>
+                        <td>{{ cita[1] }}</td>
+                        <td>{{ cita[2] }}</td>
+                        <td>{{ cita[3] }}</td>
+                        <td>{{ cita[4] }}</td>
+                        <td>{{ cita[6] }}</td>
+                        <td>{{ cita[5] }}</td>
+                        <td>
+                            {% if cita[7] == 'Confirmada' %}
+                                <span class="status-badge status-confirmada">{{ cita[7] }}</span>
+                            {% elif cita[7] == 'Pendiente' %}
+                                <span class="status-badge status-pendiente">{{ cita[7] }}</span>
+                            {% else %}
+                                <span class="status-badge status-cancelada">{{ cita[7] }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="actions-group">
+                                <form method="POST">
+                                    <input type="hidden" name="accion" value="confirmar">
+                                    <input type="hidden" name="cita_id" value="{{ cita[0] }}">
+                                    <button class="btn btn-success btn-sm action-btn" title="Confirmar">✔</button>
+                                </form>
 
-        <table class="table table-striped">
-            <thead style="background:#ffb6c1;">
-                <tr>
-                    <th>Nombre</th>
-                    <th>Teléfono</th>
-                    <th>Fecha</th>
-                    <th>Hora</th>
-                    <th>Manicurista</th>
-                    <th>Servicios</th>
-                    <th>Estado</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for cita in citas %}
-                <tr>
-                    <td>{{ cita[1] }}</td>
-                    <td>{{ cita[2] }}</td>
-                    <td>{{ cita[3] }}</td>
-                    <td>{{ cita[4] }}</td>
-                    <td>{{ cita[6] }}</td>
-                    <td>{{ cita[5] }}</td>
-                    <td>{{ cita[7] }}</td>
-                    <td>
-                        <form method="POST" style="display:inline;">
-                            <input type="hidden" name="accion" value="confirmar">
-                            <input type="hidden" name="cita_id" value="{{ cita[0] }}">
-                            <button class="btn btn-success btn-sm">✔</button>
-                        </form>
+                                <form method="POST">
+                                    <input type="hidden" name="accion" value="cancelar">
+                                    <input type="hidden" name="cita_id" value="{{ cita[0] }}">
+                                    <button class="btn btn-warning btn-sm action-btn" title="Cancelar">⏳</button>
+                                </form>
 
-                        <form method="POST" style="display:inline;">
-                            <input type="hidden" name="accion" value="cancelar">
-                            <input type="hidden" name="cita_id" value="{{ cita[0] }}">
-                            <button class="btn btn-warning btn-sm">⏳</button>
-                        </form>
-
-                        <form method="POST" style="display:inline;">
-                            <input type="hidden" name="accion" value="eliminar">
-                            <input type="hidden" name="cita_id" value="{{ cita[0] }}">
-                            <button class="btn btn-danger btn-sm">✖</button>
-                        </form>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+                                <form method="POST">
+                                    <input type="hidden" name="accion" value="eliminar">
+                                    <input type="hidden" name="cita_id" value="{{ cita[0] }}">
+                                    <button class="btn btn-danger btn-sm action-btn" title="Eliminar">✖</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
 
-
     <!-- Calendario -->
-    <div class="card p-4 mb-4" style="background:#fff0f5; border-radius:20px;">
-        <h5 style="color:#e60073;">Calendario</h5>
+    <div class="section-card">
+        <h5 class="section-title">Calendario</h5>
         <div id="calendar"></div>
     </div>
 
-    <a href="{{ url_for('logout') }}" class="btn btn-outline-danger">
-        Cerrar sesión
-    </a>
-
 </div>
 
-
-<!-- FULLCALENDAR -->
 <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/main.min.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
 
@@ -161,9 +372,15 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (calendarEl) {
         var calendar = new FullCalendar.Calendar(calendarEl, {
-            initialView: 'dayGridMonth',
+            initialView: window.innerWidth < 768 ? 'listWeek' : 'dayGridMonth',
             locale: 'es',
-            events: {{ eventos | safe }}
+            height: 'auto',
+            events: {{ eventos | safe }},
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: window.innerWidth < 768 ? 'listWeek,dayGridMonth' : 'dayGridMonth,timeGridWeek'
+            }
         });
 
         calendar.render();
