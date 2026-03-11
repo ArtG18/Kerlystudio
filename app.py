@@ -13,6 +13,13 @@ import os
 
 def get_connection():
     return psycopg2.connect(os.environ.get("DATABASE_URL"))
+
+def get_connection():
+    return psycopg2.connect(
+        host="localhost",
+        database="kerlystudio",
+        user="postgres",
+        password="180105."
     )
 
 def init_db():
