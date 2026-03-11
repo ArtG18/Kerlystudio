@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% block content %}
+
+<style>
+.hero {
+    height: 90vh;
+    background: linear-gradient(rgba(0,0,0,0.55), rgba(0,0,0,0.55)),
+                url("{{ url_for('static', filename='portada.jpeg') }}") center/cover no-repeat;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: white;
+    border-radius: 20px;
+}
+
+.hero h1 {
+    font-size: 4rem;
+    font-weight: 700;
+}
+
+.hero p {
+    font-size: 1.3rem;
+    margin-top: 15px;
+    opacity: 0.9;
+}
+
+.btn-main {
+    background: #ff4d94;
+    color: white;
+    padding: 12px 35px;
+    border-radius: 40px;
+    font-weight: 500;
+    transition: 0.3s;
+}
+
+.btn-main:hover {
+    background: #e60073;
+    transform: translateY(-3px);
+    color: white;
+}
+
+.gallery img {
+    width: 100%;
+    border-radius: 20px;
+    transition: 0.4s;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+}
+
+.gallery img:hover {
+    transform: scale(1.05);
+}
+
+.section-title {
+    font-weight: 600;
+    margin-bottom: 30px;
+}
+</style>
+
+<!-- HERO -->
+<div class="hero mb-5">
+    <div>
+        <h1>Kerly Studio</h1>
+        <p>Agenda tu cita y gestiona tu negocio de forma profesional</p>
+        <a href="{{ url_for('login') }}" class="btn btn-main mt-4">
+            Iniciar Sesión
+        </a>
+    </div>
+</div>
+
+<!-- GALERÍA -->
+<div class="container">
+    <h3 class="text-center section-title">Nuestros Trabajos</h3>
+
+    <div class="row gallery g-4">
+        <div class="col-md-4">
+            <img src="{{ url_for('static', filename='foto1.jpeg') }}" alt="Trabajo 1">
+        </div>
+        <div class="col-md-4">
+            <img src="{{ url_for('static', filename='foto2.jpeg') }}" alt="Trabajo 2">
+        </div>
+        <div class="col-md-4">
+            <img src="{{ url_for('static', filename='foto3.jpeg') }}" alt="Trabajo 3">
+        </div>
+    </div>
+</div>
+
+{% endblock %}

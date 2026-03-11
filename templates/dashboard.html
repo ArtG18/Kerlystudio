@@ -1,0 +1,174 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container mt-4">
+
+    <h2 class="mb-4" style="color:#e60073;">Panel de Citas - Kerly Studio</h2>
+
+    <!-- Estadísticas -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card p-3 text-center" style="background:#ffe6f0; border-radius:15px;">
+                <h6>Citas Hoy</h6>
+                <h3 style="color:#e60073;">{{ citas_hoy }}</h3>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card p-3 text-center" style="background:#ffe6f0; border-radius:15px;">
+                <h6>Confirmadas</h6>
+                <h3 style="color:#ff4d94;">{{ confirmadas }}</h3>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card p-3 text-center" style="background:#ffe6f0; border-radius:15px;">
+                <h6>Canceladas</h6>
+                <h3 style="color:#d9534f;">{{ canceladas }}</h3>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Formulario Agendar -->
+    <div class="card p-4 mb-4" style="background:#fff0f5; border-radius:20px;">
+        <h5 style="color:#e60073;">Agendar Nueva Cita</h5>
+
+        <form method="POST">
+            <input type="hidden" name="accion" value="agendar">
+
+            <div class="row mb-2">
+                <div class="col">
+                    <input class="form-control" name="nombre" placeholder="Nombre" required>
+                </div>
+                <div class="col">
+                    <input class="form-control" name="telefono" placeholder="Teléfono" required>
+                </div>
+            </div>
+
+            <div class="row mb-2">
+                <div class="col">
+                    <input type="date" class="form-control" name="fecha" required>
+                </div>
+                <div class="col">
+                    <input type="time" class="form-control" name="hora" required>
+                </div>
+            </div>
+
+            <div class="mb-2">
+                <select class="form-control" name="manicurista" required>
+                    <option value="">Seleccionar manicurista</option>
+                    <option value="Kerly">Kerly</option>
+                    <option value="Adri">Adri</option>
+                    <option value="Yune">Yune</option>
+                    <option value="Jossi">Jossi</option>
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label>Servicios (selección múltiple)</label>
+                <select name="servicios" multiple class="form-control" style="height:120px; overflow-y:scroll;">
+                    <option value="Manicure">Manicure</option>
+                    <option value="Pedicure">Pedicure</option>
+                    <option value="Acrílicas">Acrílicas</option>
+                    <option value="Esmaltado Permanente">Esmaltado Permanente</option>
+                    <option value="Kapping">Kapping</option>
+                    <option value="Polygel">Polygel</option>
+                    <option value="Softgel">Softgel</option>
+                    <option value="Lifting de Pestañas">Lifting de Pestañas</option>
+                    <option value="Perfilado de Cejas">Perfilado de Cejas</option>
+                </select>
+            </div>
+
+            <button class="btn btn-pink w-100" style="background:#e60073; color:white;">Agendar Cita</button>
+        </form>
+    </div>
+
+
+    <!-- Tabla de citas -->
+    <div class="card p-4 mb-4" style="background:#fff0f5; border-radius:20px;">
+        <h5 style="color:#e60073;">Citas Agendadas</h5>
+
+        <table class="table table-striped">
+            <thead style="background:#ffb6c1;">
+                <tr>
+                    <th>Nombre</th>
+                    <th>Teléfono</th>
+                    <th>Fecha</th>
+                    <th>Hora</th>
+                    <th>Manicurista</th>
+                    <th>Servicios</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for cita in citas %}
+                <tr>
+                    <td>{{ cita[1] }}</td>
+                    <td>{{ cita[2] }}</td>
+                    <td>{{ cita[3] }}</td>
+                    <td>{{ cita[4] }}</td>
+                    <td>{{ cita[6] }}</td>
+                    <td>{{ cita[5] }}</td>
+                    <td>{{ cita[7] }}</td>
+                    <td>
+                        <form method="POST" style="display:inline;">
+                            <input type="hidden" name="accion" value="confirmar">
+                            <input type="hidden" name="cita_id" value="{{ cita[0] }}">
+                            <button class="btn btn-success btn-sm">✔</button>
+                        </form>
+
+                        <form method="POST" style="display:inline;">
+                            <input type="hidden" name="accion" value="cancelar">
+                            <input type="hidden" name="cita_id" value="{{ cita[0] }}">
+                            <button class="btn btn-warning btn-sm">⏳</button>
+                        </form>
+
+                        <form method="POST" style="display:inline;">
+                            <input type="hidden" name="accion" value="eliminar">
+                            <input type="hidden" name="cita_id" value="{{ cita[0] }}">
+                            <button class="btn btn-danger btn-sm">✖</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+
+    <!-- Calendario -->
+    <div class="card p-4 mb-4" style="background:#fff0f5; border-radius:20px;">
+        <h5 style="color:#e60073;">Calendario</h5>
+        <div id="calendar"></div>
+    </div>
+
+    <a href="{{ url_for('logout') }}" class="btn btn-outline-danger">
+        Cerrar sesión
+    </a>
+
+</div>
+
+
+<!-- FULLCALENDAR -->
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/main.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var calendarEl = document.getElementById('calendar');
+
+    if (calendarEl) {
+        var calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+            locale: 'es',
+            events: {{ eventos | safe }}
+        });
+
+        calendar.render();
+    }
+});
+</script>
+
+{% endblock %}
