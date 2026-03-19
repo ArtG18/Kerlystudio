@@ -45,7 +45,7 @@ def init_db():
 
     cursor.execute("SELECT 1 FROM usuarios WHERE username = %s", ("admin",))
     if not cursor.fetchone():
-        admin_password = os.environ.get("ADMIN_PASSWORD", "1234")
+        admin_password = os.environ.get("ADMIN_PASSWORD", "K2026$")
         password_hash = generate_password_hash(admin_password)
         cursor.execute(
             "INSERT INTO usuarios (username, password_hash) VALUES (%s, %s)",
@@ -100,29 +100,6 @@ def logout():
     session.clear()
     flash("Sesión cerrada correctamente", "success")
     return redirect("/")
-
-
-# ---------------- CAMBIAR PASSWORD ADMIN (TEMPORAL) ----------------
-
-@app.route("/cambiar-admin")
-def cambiar_admin():
-    nueva_password = "Kerly2026$"
-
-    conn = get_connection()
-    cursor = conn.cursor()
-
-    nuevo_hash = generate_password_hash(nueva_password)
-
-    cursor.execute(
-        "UPDATE usuarios SET password_hash = %s WHERE username = %s",
-        (nuevo_hash, "admin")
-    )
-    conn.commit()
-
-    cursor.close()
-    conn.close()
-
-    return "Contraseña del admin actualizada correctamente."
 
 
 # ---------------- DASHBOARD ----------------
