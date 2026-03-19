@@ -266,18 +266,18 @@
             <div class="row g-3 mb-3">
                 <div class="col-12 col-md-6">
                     <label class="form-label">Nombre</label>
-                    <input class="form-control" name="nombre" placeholder="Nombre" required>
+                    <input class="form-control" name="nombre" placeholder="Nombre" minlength="2" required>
                 </div>
                 <div class="col-12 col-md-6">
                     <label class="form-label">Teléfono</label>
-                    <input class="form-control" name="telefono" placeholder="Teléfono" required>
+                    <input class="form-control" name="telefono" placeholder="Teléfono" minlength="7" required>
                 </div>
             </div>
 
             <div class="row g-3 mb-3">
                 <div class="col-12 col-md-6">
                     <label class="form-label">Fecha</label>
-                    <input type="date" class="form-control" name="fecha" required>
+                    <input type="date" class="form-control" name="fecha" min="{{ fecha_minima }}" required>
                 </div>
                 <div class="col-12 col-md-6">
                     <label class="form-label">Hora</label>
@@ -308,6 +308,10 @@
                     <option value="Softgel">Softgel</option>
                     <option value="Lifting de Pestañas">Lifting de Pestañas</option>
                     <option value="Perfilado de Cejas">Perfilado de Cejas</option>
+                    <option value="Depilacion">Depilacion</option>
+                    <option value="Laminado">Laminado</option>
+                    <option value="Extension gel">Extension gel</option>
+                    <option value="Extension acrilico">Extension acrilico</option>
                 </select>
             </div>
 

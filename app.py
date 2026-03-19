@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, redirect, session, url_for, f
 import psycopg2
 import json
 import os
+from datetime import datetime, date, time
 from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
@@ -118,26 +119,71 @@ def dashboard():
         if accion == "agendar":
             nombre = request.form["nombre"].strip()
             telefono = request.form["telefono"].strip()
-            fecha = request.form["fecha"]
-            hora = request.form["hora"]
+            fecha_str = request.form["fecha"]
+            hora_str = request.form["hora"]
             manicurista = request.form["manicurista"]
             servicios = request.form.getlist("servicios")
-            servicio_final = ", ".join(servicios)
 
-            cursor.execute("""
-            SELECT COUNT(*) FROM citas
-            WHERE fecha = %s AND hora = %s AND manicurista = %s AND estado = 'Confirmada'
-            """, (fecha, hora, manicurista))
+            if not nombre or len(nombre) < 2:
+                flash("El nombre debe tener al menos 2 caracteres", "warning")
 
-            if cursor.fetchone()[0] == 0:
-                cursor.execute("""
-                INSERT INTO citas (nombre, telefono, fecha, hora, servicio, manicurista)
-                VALUES (%s, %s, %s, %s, %s, %s)
-                """, (nombre, telefono, fecha, hora, servicio_final, manicurista))
-                conn.commit()
-                flash("Cita agendada correctamente", "success")
+            elif not telefono or len(telefono) < 7:
+                flash("Ingresa un teléfono válido", "warning")
+
+            elif not fecha_str:
+                flash("Debes seleccionar una fecha", "warning")
+
+            elif not hora_str:
+                flash("Debes seleccionar una hora", "warning")
+
+            elif not manicurista:
+                flash("Debes seleccionar una manicurista", "warning")
+
+            elif not servicios:
+                flash("Debes seleccionar al menos un servicio", "warning")
+
             else:
-                flash("Ese horario ya está ocupado por una cita confirmada", "warning")
+                try:
+                    fecha_cita = datetime.strptime(fecha_str, "%Y-%m-%d").date()
+                    hora_cita = datetime.strptime(hora_str, "%H:%M").time()
+                    hoy = date.today()
+                    ahora = datetime.now().time()
+
+                    hora_minima = time(9, 0)
+                    hora_maxima = time(19, 0)
+
+                    if fecha_cita < hoy:
+                        flash("No puedes agendar citas en fechas pasadas", "danger")
+
+                    elif fecha_cita.weekday() == 6:
+                        flash("No se agendan citas los domingos", "warning")
+
+                    elif fecha_cita == hoy and hora_cita <= ahora:
+                        flash("No puedes agendar una cita en una hora que ya pasó", "danger")
+
+                    elif hora_cita < hora_minima or hora_cita > hora_maxima:
+                        flash("Solo se pueden agendar citas entre las 09:00 y las 19:00", "warning")
+
+                    else:
+                        servicio_final = ", ".join(servicios)
+
+                        cursor.execute("""
+                        SELECT COUNT(*) FROM citas
+                        WHERE fecha = %s AND hora = %s AND manicurista = %s AND estado = 'Confirmada'
+                        """, (fecha_str, hora_str, manicurista))
+
+                        if cursor.fetchone()[0] == 0:
+                            cursor.execute("""
+                            INSERT INTO citas (nombre, telefono, fecha, hora, servicio, manicurista)
+                            VALUES (%s, %s, %s, %s, %s, %s)
+                            """, (nombre, telefono, fecha_str, hora_str, servicio_final, manicurista))
+                            conn.commit()
+                            flash("Cita agendada correctamente", "success")
+                        else:
+                            flash("Ese horario ya está ocupado por una cita confirmada", "warning")
+
+                except ValueError:
+                    flash("La fecha o la hora ingresada no son válidas", "danger")
 
         elif accion == "confirmar":
             cursor.execute(
@@ -198,7 +244,8 @@ def dashboard():
         citas_hoy=citas_hoy,
         confirmadas=confirmadas,
         canceladas=canceladas,
-        eventos=json.dumps(eventos)
+        eventos=json.dumps(eventos),
+        fecha_minima=date.today().strftime("%Y-%m-%d")
     )
 
 
