@@ -106,7 +106,7 @@ def logout():
 
 @app.route("/cambiar-admin")
 def cambiar_admin():
-    nueva_password = os.environ.get("ADMIN_PASSWORD", "1234")
+    nueva_password = "Kerly2026$"
 
     conn = get_connection()
     cursor = conn.cursor()
