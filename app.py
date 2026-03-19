@@ -45,7 +45,7 @@ def init_db():
 
     cursor.execute("SELECT 1 FROM usuarios WHERE username = %s", ("admin",))
     if not cursor.fetchone():
-        admin_password = os.environ.get("ADMIN_PASSWORD", "K2026$")
+        admin_password = os.environ.get("ADMIN_PASSWORD", "1234")
         password_hash = generate_password_hash(admin_password)
         cursor.execute(
             "INSERT INTO usuarios (username, password_hash) VALUES (%s, %s)",
