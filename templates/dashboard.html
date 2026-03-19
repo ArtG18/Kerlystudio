@@ -126,6 +126,13 @@
     color: #842029;
 }
 
+.custom-alert {
+    border-radius: 14px;
+    font-size: 0.95rem;
+    padding: 12px 14px;
+    margin-bottom: 18px;
+}
+
 #calendar {
     width: 100%;
     min-height: 500px;
@@ -134,6 +141,13 @@
 .logout-btn {
     border-radius: 30px;
     padding: 10px 20px;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 30px 10px;
+    color: #777;
+    font-weight: 500;
 }
 
 @media (max-width: 768px) {
@@ -207,6 +221,16 @@
             Cerrar sesión
         </a>
     </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} custom-alert">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
 
     <!-- Estadísticas -->
     <div class="row g-3 mb-4">
@@ -310,46 +334,52 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% for cita in citas %}
-                    <tr>
-                        <td>{{ cita[1] }}</td>
-                        <td>{{ cita[2] }}</td>
-                        <td>{{ cita[3] }}</td>
-                        <td>{{ cita[4] }}</td>
-                        <td>{{ cita[6] }}</td>
-                        <td>{{ cita[5] }}</td>
-                        <td>
-                            {% if cita[7] == 'Confirmada' %}
-                                <span class="status-badge status-confirmada">{{ cita[7] }}</span>
-                            {% elif cita[7] == 'Pendiente' %}
-                                <span class="status-badge status-pendiente">{{ cita[7] }}</span>
-                            {% else %}
-                                <span class="status-badge status-cancelada">{{ cita[7] }}</span>
-                            {% endif %}
-                        </td>
-                        <td>
-                            <div class="actions-group">
-                                <form method="POST">
-                                    <input type="hidden" name="accion" value="confirmar">
-                                    <input type="hidden" name="cita_id" value="{{ cita[0] }}">
-                                    <button class="btn btn-success btn-sm action-btn" title="Confirmar">✔</button>
-                                </form>
+                    {% if citas %}
+                        {% for cita in citas %}
+                        <tr>
+                            <td>{{ cita[1] }}</td>
+                            <td>{{ cita[2] }}</td>
+                            <td>{{ cita[3] }}</td>
+                            <td>{{ cita[4] }}</td>
+                            <td>{{ cita[6] }}</td>
+                            <td>{{ cita[5] }}</td>
+                            <td>
+                                {% if cita[7] == 'Confirmada' %}
+                                    <span class="status-badge status-confirmada">{{ cita[7] }}</span>
+                                {% elif cita[7] == 'Pendiente' %}
+                                    <span class="status-badge status-pendiente">{{ cita[7] }}</span>
+                                {% else %}
+                                    <span class="status-badge status-cancelada">{{ cita[7] }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="actions-group">
+                                    <form method="POST">
+                                        <input type="hidden" name="accion" value="confirmar">
+                                        <input type="hidden" name="cita_id" value="{{ cita[0] }}">
+                                        <button class="btn btn-success btn-sm action-btn" title="Confirmar">✔</button>
+                                    </form>
 
-                                <form method="POST">
-                                    <input type="hidden" name="accion" value="cancelar">
-                                    <input type="hidden" name="cita_id" value="{{ cita[0] }}">
-                                    <button class="btn btn-warning btn-sm action-btn" title="Cancelar">⏳</button>
-                                </form>
+                                    <form method="POST">
+                                        <input type="hidden" name="accion" value="cancelar">
+                                        <input type="hidden" name="cita_id" value="{{ cita[0] }}">
+                                        <button class="btn btn-warning btn-sm action-btn" title="Cancelar">⏳</button>
+                                    </form>
 
-                                <form method="POST">
-                                    <input type="hidden" name="accion" value="eliminar">
-                                    <input type="hidden" name="cita_id" value="{{ cita[0] }}">
-                                    <button class="btn btn-danger btn-sm action-btn" title="Eliminar">✖</button>
-                                </form>
-                            </div>
-                        </td>
-                    </tr>
-                    {% endfor %}
+                                    <form method="POST">
+                                        <input type="hidden" name="accion" value="eliminar">
+                                        <input type="hidden" name="cita_id" value="{{ cita[0] }}">
+                                        <button class="btn btn-danger btn-sm action-btn" title="Eliminar" onclick="return confirm('¿Seguro que deseas eliminar esta cita?')">✖</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="8" class="empty-state">No hay citas registradas todavía.</td>
+                        </tr>
+                    {% endif %}
                 </tbody>
             </table>
         </div>
@@ -371,15 +401,17 @@ document.addEventListener('DOMContentLoaded', function () {
     var calendarEl = document.getElementById('calendar');
 
     if (calendarEl) {
+        var mobile = window.innerWidth < 768;
+
         var calendar = new FullCalendar.Calendar(calendarEl, {
-            initialView: window.innerWidth < 768 ? 'listWeek' : 'dayGridMonth',
+            initialView: mobile ? 'listWeek' : 'dayGridMonth',
             locale: 'es',
             height: 'auto',
             events: {{ eventos | safe }},
             headerToolbar: {
                 left: 'prev,next today',
                 center: 'title',
-                right: window.innerWidth < 768 ? 'listWeek,dayGridMonth' : 'dayGridMonth,timeGridWeek'
+                right: mobile ? 'listWeek,dayGridMonth' : 'dayGridMonth,timeGridWeek'
             }
         });
 

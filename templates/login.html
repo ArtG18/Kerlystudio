@@ -82,6 +82,14 @@
     color: #e60073;
 }
 
+.custom-alert {
+    border-radius: 14px;
+    font-size: 0.95rem;
+    padding: 12px 14px;
+    text-align: center;
+    margin-bottom: 18px;
+}
+
 @media (max-width: 768px) {
     .login-wrapper {
         min-height: 75vh;
@@ -123,6 +131,16 @@
 
         <h3 class="login-title">Iniciar Sesión</h3>
         <p class="login-subtitle">Accede a tu panel de administración</p>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} custom-alert">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
 
         <form method="POST">
             <input class="form-control mb-3" name="username" placeholder="Usuario" required>

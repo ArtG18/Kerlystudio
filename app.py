@@ -1,11 +1,11 @@
-from flask import Flask, render_template, request, redirect, session, url_for
+from flask import Flask, render_template, request, redirect, session, url_for, flash
 import psycopg2
 import json
 import os
 from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
-app.secret_key = "supersecretkey"
+app.secret_key = os.environ.get("SECRET_KEY", "cambia-esta-clave-en-render")
 
 # ---------------- DATABASE ----------------
 
@@ -45,7 +45,8 @@ def init_db():
 
     cursor.execute("SELECT 1 FROM usuarios WHERE username = %s", ("admin",))
     if not cursor.fetchone():
-        password_hash = generate_password_hash("1234")
+        admin_password = os.environ.get("ADMIN_PASSWORD", "1234")
+        password_hash = generate_password_hash(admin_password)
         cursor.execute(
             "INSERT INTO usuarios (username, password_hash) VALUES (%s, %s)",
             ("admin", password_hash)
@@ -55,6 +56,8 @@ def init_db():
     cursor.close()
     conn.close()
 
+
+init_db()
 
 # ---------------- HOME ----------------
 
@@ -67,10 +70,11 @@ def home():
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
-    init_db()
+    if "user" in session:
+        return redirect(url_for("dashboard"))
 
     if request.method == "POST":
-        user = request.form["username"]
+        user = request.form["username"].strip()
         password = request.form["password"]
 
         conn = get_connection()
@@ -83,6 +87,8 @@ def login():
         if result and check_password_hash(result[0], password):
             session["user"] = user
             return redirect(url_for("dashboard"))
+        else:
+            flash("Usuario o contraseña incorrectos", "danger")
 
     return render_template("login.html")
 
@@ -92,6 +98,7 @@ def login():
 @app.route("/logout")
 def logout():
     session.clear()
+    flash("Sesión cerrada correctamente", "success")
     return redirect("/")
 
 
@@ -99,8 +106,6 @@ def logout():
 
 @app.route("/dashboard", methods=["GET", "POST"])
 def dashboard():
-    init_db()
-
     if "user" not in session:
         return redirect("/login")
 
@@ -111,8 +116,8 @@ def dashboard():
         accion = request.form.get("accion")
 
         if accion == "agendar":
-            nombre = request.form["nombre"]
-            telefono = request.form["telefono"]
+            nombre = request.form["nombre"].strip()
+            telefono = request.form["telefono"].strip()
             fecha = request.form["fecha"]
             hora = request.form["hora"]
             manicurista = request.form["manicurista"]
@@ -130,6 +135,9 @@ def dashboard():
                 VALUES (%s, %s, %s, %s, %s, %s)
                 """, (nombre, telefono, fecha, hora, servicio_final, manicurista))
                 conn.commit()
+                flash("Cita agendada correctamente", "success")
+            else:
+                flash("Ese horario ya está ocupado por una cita confirmada", "warning")
 
         elif accion == "confirmar":
             cursor.execute(
@@ -137,6 +145,7 @@ def dashboard():
                 (request.form["cita_id"],)
             )
             conn.commit()
+            flash("Cita confirmada correctamente", "success")
 
         elif accion == "cancelar":
             cursor.execute(
@@ -144,6 +153,7 @@ def dashboard():
                 (request.form["cita_id"],)
             )
             conn.commit()
+            flash("Cita cancelada correctamente", "warning")
 
         elif accion == "eliminar":
             cursor.execute(
@@ -151,6 +161,7 @@ def dashboard():
                 (request.form["cita_id"],)
             )
             conn.commit()
+            flash("Cita eliminada correctamente", "danger")
 
     cursor.execute("""
     SELECT id, nombre, telefono, fecha, hora, servicio, manicurista, estado
