@@ -102,6 +102,29 @@ def logout():
     return redirect("/")
 
 
+# ---------------- CAMBIAR PASSWORD ADMIN (TEMPORAL) ----------------
+
+@app.route("/cambiar-admin")
+def cambiar_admin():
+    nueva_password = os.environ.get("ADMIN_PASSWORD", "1234")
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    nuevo_hash = generate_password_hash(nueva_password)
+
+    cursor.execute(
+        "UPDATE usuarios SET password_hash = %s WHERE username = %s",
+        (nuevo_hash, "admin")
+    )
+    conn.commit()
+
+    cursor.close()
+    conn.close()
+
+    return "Contraseña del admin actualizada correctamente."
+
+
 # ---------------- DASHBOARD ----------------
 
 @app.route("/dashboard", methods=["GET", "POST"])
