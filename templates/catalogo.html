@@ -1,0 +1,245 @@
+{% extends "base.html" %}
+{% block content %}
+
+<style>
+    .catalogo-hero {
+        text-align: center;
+        margin-bottom: 40px;
+        padding: 10px 0 5px;
+    }
+
+    .catalogo-title {
+        font-size: 2.4rem;
+        font-weight: 700;
+        color: #222;
+        margin-bottom: 10px;
+    }
+
+    .catalogo-subtitle {
+        max-width: 720px;
+        margin: 0 auto;
+        color: #777;
+        font-size: 1rem;
+        line-height: 1.6;
+    }
+
+    .service-card {
+        background: white;
+        border-radius: 22px;
+        padding: 26px 22px;
+        height: 100%;
+        box-shadow: 0 12px 28px rgba(0, 0, 0, 0.08);
+        transition: 0.3s ease;
+        border: 1px solid #f3e3ea;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+
+    .service-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 16px 32px rgba(0, 0, 0, 0.10);
+    }
+
+    .service-top {
+        margin-bottom: 18px;
+    }
+
+    .service-badge {
+        display: inline-block;
+        background: #ffe3ef;
+        color: #ff4d94;
+        font-size: 0.85rem;
+        font-weight: 600;
+        padding: 6px 12px;
+        border-radius: 999px;
+        margin-bottom: 14px;
+    }
+
+    .service-name {
+        font-size: 1.35rem;
+        font-weight: 700;
+        color: #222;
+        margin-bottom: 10px;
+    }
+
+    .service-description {
+        color: #666;
+        font-size: 0.96rem;
+        line-height: 1.6;
+        margin-bottom: 18px;
+        min-height: 72px;
+    }
+
+    .service-meta {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-bottom: 22px;
+    }
+
+    .service-meta span {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: #555;
+        font-size: 0.95rem;
+        font-weight: 500;
+    }
+
+    .service-meta i {
+        color: #ff4d94;
+    }
+
+    .service-price {
+        font-size: 1.55rem;
+        font-weight: 700;
+        color: #ff4d94;
+        margin-bottom: 18px;
+    }
+
+    .btn-book {
+        background: #ff4d94;
+        color: white;
+        border: none;
+        border-radius: 32px;
+        padding: 12px 18px;
+        font-weight: 600;
+        text-decoration: none;
+        text-align: center;
+        transition: 0.3s;
+        display: inline-block;
+    }
+
+    .btn-book:hover {
+        background: #e60073;
+        color: white;
+        transform: translateY(-2px);
+    }
+
+    .empty-state {
+        background: white;
+        border-radius: 22px;
+        padding: 40px 25px;
+        text-align: center;
+        box-shadow: 0 12px 28px rgba(0, 0, 0, 0.08);
+    }
+
+    .empty-state i {
+        font-size: 2.2rem;
+        color: #ff4d94;
+        margin-bottom: 14px;
+    }
+
+    .empty-state h4 {
+        font-weight: 700;
+        color: #222;
+        margin-bottom: 10px;
+    }
+
+    .empty-state p {
+        color: #777;
+        margin-bottom: 0;
+    }
+
+    @media (max-width: 768px) {
+        .catalogo-title {
+            font-size: 2rem;
+        }
+
+        .service-description {
+            min-height: auto;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .catalogo-title {
+            font-size: 1.75rem;
+        }
+
+        .catalogo-subtitle {
+            font-size: 0.95rem;
+        }
+
+        .service-card {
+            padding: 22px 18px;
+        }
+
+        .service-name {
+            font-size: 1.2rem;
+        }
+
+        .service-price {
+            font-size: 1.35rem;
+        }
+    }
+</style>
+
+<div class="catalogo-hero">
+    <h1 class="catalogo-title">Catálogo de Servicios</h1>
+    <p class="catalogo-subtitle">
+        Descubre nuestros servicios, revisa la duración y el valor de cada uno,
+        y elige el que mejor combine con tu próxima cita en Kerly Studio.
+    </p>
+</div>
+
+{% if servicios %}
+    <div class="row g-4">
+        {% for servicio in servicios %}
+            <div class="col-12 col-md-6 col-lg-4">
+                <div class="service-card">
+                    <div>
+                        <div class="service-top">
+                            <span class="service-badge">Servicio disponible</span>
+                            <h3 class="service-name">{{ servicio.nombre }}</h3>
+                            <p class="service-description">
+                                {{ servicio.descripcion if servicio.descripcion else "Este servicio aún no tiene descripción, pero igual viene a ponerse bonito." }}
+                            </p>
+                        </div>
+
+                        <div class="service-meta">
+                            <span>
+                                <i class="fa-regular fa-clock"></i>
+                                {{ servicio.duracion_min }} min
+                            </span>
+                            <span>
+                                <i class="fa-solid fa-sparkles"></i>
+                                Atención profesional
+                            </span>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="service-price">
+                            ${{ "{:,.0f}".format(servicio.precio).replace(",", ".") }}
+                        </div>
+
+                        {% if logged_user and logged_user.rol == "cliente" %}
+                            <a href="{{ url_for('reservar') }}" class="btn-book w-100">
+                                Reservar este servicio
+                            </a>
+                        {% elif logged_user and logged_user.rol == "admin" %}
+                            <a href="{{ url_for('admin_servicios') }}" class="btn-book w-100">
+                                Administrar servicios
+                            </a>
+                        {% else %}
+                            <a href="{{ url_for('login') }}" class="btn-book w-100">
+                                Inicia sesión para reservar
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="empty-state">
+        <i class="fa-solid fa-face-smile-beam"></i>
+        <h4>Aún no hay servicios cargados</h4>
+        <p>
+            Cuando agregues servicios desde el panel administrador, aparecerán aquí.
+        </p>
+    </div>
+{% endif %}
+
+{% endblock %}

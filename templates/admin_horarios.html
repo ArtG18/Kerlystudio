@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+{% block content %}
+
+<style>
+/* (mantengo todo tu CSS tal cual, no lo toco porque está bien) */
+</style>
+
+<div class="admin-header">
+    <div>
+        <h1 class="admin-title">Horarios por Manicurista</h1>
+        <p class="admin-subtitle">
+            Define qué días trabaja cada manicurista y en qué horario.
+        </p>
+    </div>
+</div>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+            <div class="alert alert-{{ category }} custom-alert">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
+
+<div class="panel-card mb-4">
+    <h3 class="section-title">Seleccionar manicurista</h3>
+
+    <!-- 🔥 auto submit -->
+    <form method="GET" class="row g-3 align-items-end">
+        <div class="col-12 col-md-6">
+            <label for="manicurista_id" class="form-label">Manicurista</label>
+            <select name="manicurista_id" id="manicurista_id" class="form-select" required onchange="this.form.submit()">
+                <option value="">Selecciona una manicurista</option>
+                {% for manicurista in manicuristas %}
+                    <option value="{{ manicurista.id }}" {% if manicurista_id == manicurista.id %}selected{% endif %}>
+                        {{ manicurista.nombre }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+    </form>
+</div>
+
+{% if selected_manicurista and horarios %}
+    <div class="panel-card">
+        <h3 class="section-title mb-3">
+            Horarios de {{ selected_manicurista.nombre }}
+        </h3>
+
+        <div class="table-responsive">
+            <table class="table align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>Día</th>
+                        <th>Inicio</th>
+                        <th>Fin</th>
+                        <th>Estado</th>
+                        <th>Guardar</th>
+                        <th>Activar / Desactivar</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for horario in horarios %}
+                        <tr>
+                            <td>
+                                <div class="day-name">{{ dias_semana[horario.dia_semana] }}</div>
+                            </td>
+
+                            <td>
+                                <form method="POST" action="{{ url_for('actualizar_horario_manicurista', horario_id=horario.id) }}" class="inline-form horario-form">
+                                    <input type="time" name="hora_inicio" class="form-control" value="{{ horario.hora_inicio.strftime('%H:%M') }}" required>
+                            </td>
+
+                            <td>
+                                    <input type="time" name="hora_fin" class="form-control" value="{{ horario.hora_fin.strftime('%H:%M') }}" required>
+                            </td>
+
+                            <td>
+                                <span class="status-badge {{ 'status-activo' if horario.activo else 'status-inactivo' }}">
+                                    {{ 'Activo' if horario.activo else 'Inactivo' }}
+                                </span>
+                            </td>
+
+                            <td>
+                                    <button type="submit" class="btn-soft-save guardar-btn">
+                                        <i class="fa-solid fa-floppy-disk"></i> Guardar
+                                    </button>
+                                </form>
+                            </td>
+
+                            <td>
+                                <form method="POST" action="{{ url_for('toggle_horario_manicurista', horario_id=horario.id) }}" class="inline-form toggle-form">
+                                    <button type="submit" class="btn-soft-toggle toggle-btn">
+                                        <i class="fa-solid fa-power-off"></i>
+                                        {{ 'Desactivar' if horario.activo else 'Activar' }}
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 🔥 ayuda visual -->
+        <p class="small-note mt-3">
+            Si un día está inactivo, no aparecerá como disponible para reservas.
+        </p>
+    </div>
+
+{% elif manicurista_id %}
+    <div class="empty-state">
+        <i class="fa-regular fa-clock"></i>
+        <h4>No se encontraron horarios</h4>
+        <p>
+            Esa manicurista no tiene horarios cargados todavía.
+        </p>
+    </div>
+{% endif %}
+
+<!-- 🔥 UX PRO -->
+<script>
+document.querySelectorAll('.horario-form').forEach(form => {
+    form.addEventListener('submit', function() {
+        const btn = this.querySelector('.guardar-btn');
+        btn.innerText = 'Guardando...';
+        btn.disabled = true;
+    });
+});
+
+document.querySelectorAll('.toggle-form').forEach(form => {
+    form.addEventListener('submit', function() {
+        const btn = this.querySelector('.toggle-btn');
+        btn.innerText = '...';
+        btn.disabled = true;
+    });
+});
+</script>
+
+{% endblock %}

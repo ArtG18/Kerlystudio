@@ -1,0 +1,562 @@
+{% extends "base.html" %}
+{% block content %}
+
+<style>
+    .booking-header {
+        text-align: center;
+        margin-bottom: 34px;
+    }
+
+    .booking-title {
+        font-size: 2.3rem;
+        font-weight: 700;
+        color: #222;
+        margin-bottom: 10px;
+    }
+
+    .booking-subtitle {
+        max-width: 760px;
+        margin: 0 auto;
+        color: #777;
+        font-size: 1rem;
+        line-height: 1.6;
+    }
+
+    .booking-card,
+    .summary-card {
+        background: white;
+        border-radius: 24px;
+        padding: 28px 24px;
+        box-shadow: 0 14px 35px rgba(0, 0, 0, 0.08);
+        border: 1px solid #f3e3ea;
+    }
+
+    .section-title {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #222;
+        margin-bottom: 18px;
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: #444;
+        margin-bottom: 8px;
+    }
+
+    .form-control,
+    .form-select {
+        border-radius: 14px;
+        padding: 12px 14px;
+        border: 1px solid #e7d7df;
+    }
+
+    .form-control:focus,
+    .form-select:focus {
+        border-color: #ff4d94;
+        box-shadow: 0 0 0 0.2rem rgba(255, 77, 148, 0.15);
+    }
+
+    .service-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 14px;
+    }
+
+    .service-option {
+        position: relative;
+    }
+
+    .service-option input[type="checkbox"] {
+        position: absolute;
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    .service-label {
+        display: block;
+        background: #fff;
+        border: 1px solid #eedce5;
+        border-radius: 18px;
+        padding: 16px 16px 14px;
+        cursor: pointer;
+        transition: 0.25s ease;
+        height: 100%;
+    }
+
+    .service-label:hover {
+        border-color: #ffb6d2;
+        transform: translateY(-2px);
+    }
+
+    .service-option input[type="checkbox"]:checked + .service-label {
+        border-color: #ff4d94;
+        background: #fff5f9;
+        box-shadow: 0 0 0 0.2rem rgba(255, 77, 148, 0.08);
+    }
+
+    .service-name {
+        font-weight: 700;
+        color: #222;
+        font-size: 1rem;
+        margin-bottom: 8px;
+    }
+
+    .service-meta {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        flex-wrap: wrap;
+        color: #666;
+        font-size: 0.92rem;
+    }
+
+    .service-meta strong {
+        color: #ff4d94;
+        font-weight: 700;
+    }
+
+    .custom-alert {
+        border-radius: 14px;
+        font-size: 0.95rem;
+        padding: 12px 14px;
+        text-align: center;
+        margin-bottom: 18px;
+    }
+
+    .availability-box {
+        margin-top: 10px;
+        padding: 18px;
+        background: #fff8fb;
+        border: 1px dashed #ffc2da;
+        border-radius: 18px;
+    }
+
+    .availability-message {
+        color: #777;
+        margin: 0 0 12px 0;
+        line-height: 1.6;
+        font-size: 0.96rem;
+    }
+
+    .summary-list {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+    }
+
+    .summary-item {
+        padding-bottom: 12px;
+        border-bottom: 1px solid #f3e3ea;
+    }
+
+    .summary-item:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+    }
+
+    .summary-label {
+        display: block;
+        font-size: 0.88rem;
+        color: #888;
+        margin-bottom: 4px;
+    }
+
+    .summary-value {
+        color: #222;
+        font-weight: 600;
+    }
+
+    .summary-total {
+        margin-top: 20px;
+        padding: 16px;
+        border-radius: 18px;
+        background: #fff5f9;
+        border: 1px solid #ffd0e3;
+    }
+
+    .summary-total strong {
+        display: block;
+        color: #ff4d94;
+        font-size: 1.4rem;
+        margin-top: 6px;
+    }
+
+    .btn-booking {
+        background: #ff4d94;
+        color: white;
+        border: none;
+        border-radius: 32px;
+        padding: 13px 20px;
+        font-weight: 600;
+        transition: 0.3s;
+    }
+
+    .btn-booking:hover {
+        background: #e60073;
+        color: white;
+        transform: translateY(-2px);
+    }
+
+    .btn-booking:disabled {
+        opacity: 0.75;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    .small-note {
+        color: #888;
+        font-size: 0.88rem;
+        margin-top: 10px;
+        line-height: 1.5;
+    }
+
+    @media (max-width: 991px) {
+        .summary-card {
+            margin-top: 20px;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .booking-title {
+            font-size: 1.95rem;
+        }
+
+        .booking-card,
+        .summary-card {
+            padding: 24px 18px;
+            border-radius: 20px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .booking-title {
+            font-size: 1.7rem;
+        }
+
+        .service-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<div class="booking-header">
+    <h1 class="booking-title">Reserva tu cita</h1>
+    <p class="booking-subtitle">
+        Elige tus servicios, selecciona una manicurista y revisa los horarios disponibles.
+        Tu solicitud quedará pendiente hasta que la administración la confirme.
+    </p>
+</div>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+            <div class="alert alert-{{ category }} custom-alert">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="booking-card">
+            <h3 class="section-title">Datos de la reserva</h3>
+
+            <form method="POST" id="bookingForm" novalidate>
+                <div class="mb-4">
+                    <label class="form-label">Selecciona uno o más servicios</label>
+                    <div class="service-grid">
+                        {% for servicio in servicios %}
+                            <div class="service-option">
+                                <input
+                                    type="checkbox"
+                                    id="servicio_{{ servicio.id }}"
+                                    name="servicios"
+                                    value="{{ servicio.id }}"
+                                    data-name="{{ servicio.nombre }}"
+                                    data-duration="{{ servicio.duracion_min }}"
+                                    data-price="{{ servicio.precio }}"
+                                    {% if servicio.id|string in request.form.getlist('servicios') %}checked{% endif %}
+                                >
+                                <label for="servicio_{{ servicio.id }}" class="service-label">
+                                    <div class="service-name">{{ servicio.nombre }}</div>
+                                    <div class="service-meta">
+                                        <span><i class="fa-regular fa-clock me-1"></i>{{ servicio.duracion_min }} min</span>
+                                        <span><strong>${{ "{:,.0f}".format(servicio.precio).replace(",", ".") }}</strong></span>
+                                    </div>
+                                </label>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="manicurista_id" class="form-label">Manicurista</label>
+                        <select class="form-select" id="manicurista_id" name="manicurista_id" required>
+                            <option value="">Selecciona una manicurista</option>
+                            {% for manicurista in manicuristas %}
+                                <option
+                                    value="{{ manicurista.id }}"
+                                    {% if request.form.get('manicurista_id') == manicurista.id|string %}selected{% endif %}
+                                >
+                                    {{ manicurista.nombre }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label for="fecha" class="form-label">Fecha</label>
+                        <input
+                            type="date"
+                            class="form-control"
+                            id="fecha"
+                            name="fecha"
+                            min="{{ today_date }}"
+                            value="{{ request.form.get('fecha', '') }}"
+                            required
+                        >
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label for="hora_inicio" class="form-label">Hora disponible</label>
+
+                    <div class="availability-box">
+                        <p class="availability-message" id="availabilityMessage">
+                            Primero elige servicios, manicurista y fecha. Después verás aquí las horas disponibles.
+                        </p>
+
+                        <select class="form-select" id="hora_inicio" name="hora_inicio" required disabled>
+                            <option value="">Selecciona una hora</option>
+                        </select>
+                    </div>
+
+                    <div class="small-note">
+                        Las horas se calculan según la duración total de tus servicios y la agenda disponible de la manicurista.
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label for="notas" class="form-label">Notas adicionales</label>
+                    <textarea
+                        class="form-control"
+                        id="notas"
+                        name="notas"
+                        rows="4"
+                        placeholder="Ej: diseño especial, retiro de producto anterior, preferencia de horario, etc."
+                    >{{ request.form.get('notas', '') }}</textarea>
+                </div>
+
+                <button type="submit" class="btn btn-booking w-100" id="bookingBtn">
+                    Enviar solicitud de cita
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="summary-card">
+            <h3 class="section-title">Resumen</h3>
+
+            <div class="summary-list">
+                <div class="summary-item">
+                    <span class="summary-label">Servicios seleccionados</span>
+                    <div class="summary-value" id="summaryServices">Aún no has seleccionado servicios</div>
+                </div>
+
+                <div class="summary-item">
+                    <span class="summary-label">Duración estimada</span>
+                    <div class="summary-value" id="summaryDuration">0 min</div>
+                </div>
+
+                <div class="summary-item">
+                    <span class="summary-label">Manicurista</span>
+                    <div class="summary-value" id="summaryManicurista">Sin seleccionar</div>
+                </div>
+
+                <div class="summary-item">
+                    <span class="summary-label">Fecha</span>
+                    <div class="summary-value" id="summaryDate">Sin seleccionar</div>
+                </div>
+
+                <div class="summary-item">
+                    <span class="summary-label">Hora</span>
+                    <div class="summary-value" id="summaryTime">Sin seleccionar</div>
+                </div>
+            </div>
+
+            <div class="summary-total">
+                Total estimado
+                <strong id="summaryPrice">$0</strong>
+            </div>
+
+            <p class="small-note mb-0">
+                La cita quedará pendiente hasta que el estudio la confirme. Todo bajo control, no es caos, es protocolo.
+            </p>
+        </div>
+    </div>
+</div>
+
+<script>
+    const serviceInputs = document.querySelectorAll('input[name="servicios"]');
+    const manicuristaSelect = document.getElementById('manicurista_id');
+    const fechaInput = document.getElementById('fecha');
+    const horaInicioSelect = document.getElementById('hora_inicio');
+    const availabilityMessage = document.getElementById('availabilityMessage');
+    const bookingForm = document.getElementById('bookingForm');
+    const bookingBtn = document.getElementById('bookingBtn');
+
+    const summaryServices = document.getElementById('summaryServices');
+    const summaryDuration = document.getElementById('summaryDuration');
+    const summaryManicurista = document.getElementById('summaryManicurista');
+    const summaryDate = document.getElementById('summaryDate');
+    const summaryTime = document.getElementById('summaryTime');
+    const summaryPrice = document.getElementById('summaryPrice');
+
+    function formatCLP(value) {
+        return new Intl.NumberFormat('es-CL').format(Number(value || 0));
+    }
+
+    function getSelectedServices() {
+        return Array.from(serviceInputs)
+            .filter(input => input.checked)
+            .map(input => ({
+                id: input.value,
+                name: input.dataset.name,
+                duration: Number(input.dataset.duration || 0),
+                price: Number(input.dataset.price || 0),
+            }));
+    }
+
+    function resetHours(message = 'Primero elige servicios, manicurista y fecha. Después verás aquí las horas disponibles.') {
+        horaInicioSelect.innerHTML = '<option value="">Selecciona una hora</option>';
+        horaInicioSelect.disabled = true;
+        availabilityMessage.textContent = message;
+        summaryTime.textContent = 'Sin seleccionar';
+    }
+
+    function updateSummary() {
+        const selectedServices = getSelectedServices();
+        const totalDuration = selectedServices.reduce((acc, item) => acc + item.duration, 0);
+        const totalPrice = selectedServices.reduce((acc, item) => acc + item.price, 0);
+        const selectedManicurista = manicuristaSelect.value
+            ? manicuristaSelect.options[manicuristaSelect.selectedIndex].text
+            : 'Sin seleccionar';
+        const selectedDate = fechaInput.value || 'Sin seleccionar';
+        const selectedTime = horaInicioSelect.value || 'Sin seleccionar';
+
+        summaryServices.textContent = selectedServices.length
+            ? selectedServices.map(item => item.name).join(', ')
+            : 'Aún no has seleccionado servicios';
+
+        summaryDuration.textContent = `${totalDuration} min`;
+        summaryPrice.textContent = `$${formatCLP(totalPrice)}`;
+        summaryManicurista.textContent = selectedManicurista;
+        summaryDate.textContent = selectedDate;
+        summaryTime.textContent = selectedTime;
+    }
+
+    async function loadAvailability() {
+        const selectedServices = getSelectedServices();
+        const manicuristaId = manicuristaSelect.value;
+        const fecha = fechaInput.value;
+
+        if (!selectedServices.length || !manicuristaId || !fecha) {
+            resetHours();
+            updateSummary();
+            return;
+        }
+
+        resetHours('Buscando horas disponibles...');
+
+        const params = new URLSearchParams();
+        params.append('manicurista_id', manicuristaId);
+        params.append('fecha', fecha);
+        selectedServices.forEach(service => params.append('servicios', service.id));
+
+        try {
+            const response = await fetch(`/api/disponibilidad?${params.toString()}`);
+            const data = await response.json();
+
+            if (!response.ok) {
+                resetHours(data.error || 'No se pudo cargar la disponibilidad.');
+                updateSummary();
+                return;
+            }
+
+            const slots = data.slots || [];
+
+            if (!slots.length) {
+                resetHours('No hay horas disponibles para esa combinación. Prueba otra fecha o manicurista.');
+                updateSummary();
+                return;
+            }
+
+            horaInicioSelect.disabled = false;
+            availabilityMessage.textContent = 'Selecciona una de las horas disponibles.';
+            horaInicioSelect.innerHTML = '<option value="">Selecciona una hora</option>';
+
+            slots.forEach(slot => {
+                const option = document.createElement('option');
+                option.value = slot.hora_inicio;
+                option.textContent = `${slot.hora_inicio} - ${slot.hora_fin}`;
+                horaInicioSelect.appendChild(option);
+            });
+
+            const oldValue = "{{ request.form.get('hora_inicio', '') }}";
+            if (oldValue) {
+                const existingOption = Array.from(horaInicioSelect.options).find(opt => opt.value === oldValue);
+                if (existingOption) {
+                    horaInicioSelect.value = oldValue;
+                }
+            }
+
+            updateSummary();
+        } catch (error) {
+            resetHours('Ocurrió un error al consultar la disponibilidad.');
+            updateSummary();
+        }
+    }
+
+    serviceInputs.forEach(input => {
+        input.addEventListener('change', async () => {
+            updateSummary();
+            await loadAvailability();
+        });
+    });
+
+    manicuristaSelect.addEventListener('change', async () => {
+        updateSummary();
+        await loadAvailability();
+    });
+
+    fechaInput.addEventListener('change', async () => {
+        updateSummary();
+        await loadAvailability();
+    });
+
+    horaInicioSelect.addEventListener('change', updateSummary);
+
+    bookingForm.addEventListener('submit', function () {
+        bookingBtn.innerText = 'Enviando...';
+        bookingBtn.disabled = true;
+    });
+
+    document.addEventListener('DOMContentLoaded', async function () {
+        updateSummary();
+
+        const hasInitialData =
+            getSelectedServices().length &&
+            manicuristaSelect.value &&
+            fechaInput.value;
+
+        if (hasInitialData) {
+            await loadAvailability();
+        }
+    });
+</script>
+
+{% endblock %}

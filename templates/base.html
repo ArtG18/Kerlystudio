@@ -5,9 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Kerly Studio</title>
 
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
-  <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/main.min.css" rel="stylesheet">
 
   <style>
     body {
@@ -18,11 +21,84 @@
       overflow-x: hidden;
     }
 
+    .navbar-kerly {
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(243, 227, 234, 0.95);
+      position: sticky;
+      top: 0;
+      z-index: 1030;
+    }
+
+    .navbar-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      color: #c2185b !important;
+      font-size: 1.1rem;
+    }
+
+    .brand-logo {
+      width: 42px;
+      height: 42px;
+      object-fit: cover;
+      border-radius: 50%;
+      box-shadow: 0 6px 16px rgba(230, 0, 115, 0.18);
+      background: white;
+    }
+
+    .nav-link {
+      color: #555 !important;
+      font-weight: 500;
+      border-radius: 12px;
+      padding: 10px 14px !important;
+      transition: 0.25s ease;
+    }
+
+    .nav-link:hover,
+    .nav-link.active {
+      color: #e60073 !important;
+      background: #fff0f6;
+    }
+
+    .btn-pink {
+      background: linear-gradient(135deg, #ff4d94, #e60073);
+      color: white;
+      border: none;
+      border-radius: 30px;
+      padding: 10px 18px;
+      font-weight: 500;
+      box-shadow: 0 8px 20px rgba(230, 0, 115, 0.18);
+      transition: 0.25s ease;
+    }
+
+    .btn-pink:hover {
+      color: white;
+      transform: translateY(-1px);
+    }
+
+    .btn-soft {
+      background: white;
+      color: #ff4d94;
+      border: 1px solid #ffb6d2;
+      border-radius: 30px;
+      padding: 10px 18px;
+      font-weight: 500;
+      transition: 0.25s ease;
+    }
+
+    .btn-soft:hover {
+      background: #fff5f9;
+      color: #e60073;
+      transform: translateY(-1px);
+    }
+
     .main-container {
       width: 100%;
       max-width: 1200px;
       margin: 0 auto;
-      padding: 16px;
+      padding: 18px 16px 28px;
       opacity: 0;
       transform: translateY(12px);
       transition: opacity 0.8s ease, transform 0.8s ease;
@@ -37,21 +113,6 @@
       border: none;
       border-radius: 20px;
       box-shadow: 0 10px 25px rgba(0,0,0,0.05);
-    }
-
-    .btn-pink {
-      background: linear-gradient(135deg, #ff4d94, #e60073);
-      color: white;
-      border: none;
-      border-radius: 30px;
-      padding: 10px 18px;
-      font-weight: 500;
-      box-shadow: 0 8px 20px rgba(230, 0, 115, 0.18);
-    }
-
-    .btn-pink:hover {
-      color: white;
-      transform: translateY(-1px);
     }
 
     img {
@@ -76,7 +137,6 @@
       -webkit-overflow-scrolling: touch;
     }
 
-    /* PREMIUM LOADER */
     #loader {
       position: fixed;
       inset: 0;
@@ -87,7 +147,7 @@
       align-items: center;
       justify-content: center;
       z-index: 9999;
-      transition: opacity 0.9s ease, visibility 0.9s ease;
+      transition: opacity 0.8s ease, visibility 0.8s ease;
       overflow: hidden;
     }
 
@@ -231,68 +291,38 @@
     }
 
     @keyframes rotateRing {
-      from {
-        transform: rotate(0deg);
-      }
-      to {
-        transform: rotate(360deg);
-      }
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
     }
 
     @keyframes logoBreath {
-      0%, 100% {
-        transform: scale(1);
-      }
-      50% {
-        transform: scale(1.045);
-      }
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.045); }
     }
 
     @keyframes premiumBar {
-      0% {
-        left: -35%;
-      }
-      100% {
-        left: 100%;
-      }
+      0% { left: -35%; }
+      100% { left: 100%; }
     }
 
     @keyframes dotPulse {
-      0%, 100% {
-        transform: scale(1);
-        opacity: 0.35;
-      }
-      50% {
-        transform: scale(1.4);
-        opacity: 1;
-      }
+      0%, 100% { transform: scale(1); opacity: 0.35; }
+      50% { transform: scale(1.4); opacity: 1; }
     }
 
     @keyframes glowPulse {
-      0%, 100% {
-        transform: scale(0.95);
-        opacity: 0.7;
-      }
-      50% {
-        transform: scale(1.08);
-        opacity: 1;
-      }
+      0%, 100% { transform: scale(0.95); opacity: 0.7; }
+      50% { transform: scale(1.08); opacity: 1; }
     }
 
     @keyframes softRise {
-      from {
-        opacity: 0;
-        transform: translateY(16px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
+      from { opacity: 0; transform: translateY(16px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
     @media (max-width: 768px) {
       .main-container {
-        padding: 12px;
+        padding: 14px 12px 24px;
       }
 
       .card {
@@ -317,26 +347,15 @@
         font-size: 0.92rem;
       }
 
-      h1 {
-        font-size: 1.8rem;
-      }
-
-      h2 {
-        font-size: 1.5rem;
-      }
-
-      h3 {
-        font-size: 1.3rem;
-      }
-
-      .btn-pink {
+      .btn-pink,
+      .btn-soft {
         width: 100%;
       }
     }
 
     @media (max-width: 480px) {
       .main-container {
-        padding: 10px;
+        padding: 12px 10px 20px;
       }
 
       .loader-logo-wrap {
@@ -359,18 +378,6 @@
 
       .loader-progress {
         width: 140px;
-      }
-
-      h1 {
-        font-size: 1.5rem;
-      }
-
-      h2 {
-        font-size: 1.25rem;
-      }
-
-      h3 {
-        font-size: 1.1rem;
       }
 
       .card {
@@ -403,11 +410,75 @@
     </div>
   </div>
 
+  <nav class="navbar navbar-expand-lg navbar-kerly">
+    <div class="container-fluid main-container py-2">
+      <a class="navbar-brand" href="{{ url_for('home') }}">
+        <img src="{{ url_for('static', filename='Logo.jpg') }}" alt="Kerly Studio" class="brand-logo">
+        <span>Kerly Studio</span>
+      </a>
+
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <div class="collapse navbar-collapse" id="mainNavbar">
+        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+          <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('home') }}">Inicio</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('catalogo') }}">Catálogo</a>
+          </li>
+
+          {% if logged_user and logged_user.rol == 'cliente' %}
+            <li class="nav-item">
+              <a class="nav-link" href="{{ url_for('reservar') }}">Reservar</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{{ url_for('mis_citas') }}">Mis citas</a>
+            </li>
+          {% endif %}
+
+          {% if logged_user and logged_user.rol == 'admin' %}
+            <li class="nav-item">
+              <a class="nav-link" href="{{ url_for('admin_dashboard') }}">Panel</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{{ url_for('admin_citas') }}">Citas</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{{ url_for('admin_servicios') }}">Servicios</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{{ url_for('admin_manicuristas') }}">Manicuristas</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{{ url_for('admin_horarios') }}">Horarios</a>
+            </li>
+          {% endif %}
+        </ul>
+
+        <div class="d-flex flex-column flex-lg-row gap-2 mt-3 mt-lg-0">
+          {% if not logged_user %}
+            <a href="{{ url_for('login') }}" class="btn btn-soft">Iniciar sesión</a>
+            <a href="{{ url_for('register') }}" class="btn btn-pink">Registro</a>
+            <a href="{{ url_for('admin_login') }}" class="btn btn-soft">Admin</a>
+          {% else %}
+            <span class="d-flex align-items-center px-2 text-muted fw-medium">
+              {{ logged_user.nombre }}
+            </span>
+            <a href="{{ url_for('logout') }}" class="btn btn-pink">Cerrar sesión</a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </nav>
+
   <div class="main-container">
     {% block content %}{% endblock %}
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
   <script>
     window.addEventListener('load', function () {
@@ -417,7 +488,7 @@
         setTimeout(() => {
           loader.classList.add('hide');
           document.body.classList.add('loaded');
-        }, 1800);
+        }, 900);
       }
     });
   </script>

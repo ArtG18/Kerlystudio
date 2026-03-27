@@ -1,0 +1,351 @@
+{% extends "base.html" %}
+{% block content %}
+
+<style>
+    .appointments-header {
+        text-align: center;
+        margin-bottom: 34px;
+    }
+
+    .appointments-title {
+        font-size: 2.3rem;
+        font-weight: 700;
+        color: #222;
+        margin-bottom: 10px;
+    }
+
+    .appointments-subtitle {
+        max-width: 760px;
+        margin: 0 auto;
+        color: #777;
+        font-size: 1rem;
+        line-height: 1.6;
+    }
+
+    .custom-alert {
+        border-radius: 14px;
+        font-size: 0.95rem;
+        padding: 12px 14px;
+        text-align: center;
+        margin-bottom: 18px;
+    }
+
+    .appointment-card {
+        background: white;
+        border-radius: 24px;
+        padding: 24px 22px;
+        box-shadow: 0 14px 35px rgba(0, 0, 0, 0.08);
+        border: 1px solid #f3e3ea;
+        height: 100%;
+        transition: 0.3s ease;
+    }
+
+    .appointment-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 16px 38px rgba(0, 0, 0, 0.10);
+    }
+
+    .appointment-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 12px;
+        margin-bottom: 16px;
+    }
+
+    .appointment-id {
+        font-size: 0.88rem;
+        color: #999;
+        margin-bottom: 6px;
+    }
+
+    .appointment-services {
+        font-size: 1.18rem;
+        font-weight: 700;
+        color: #222;
+        line-height: 1.4;
+        margin-bottom: 0;
+    }
+
+    .status-badge {
+        display: inline-block;
+        padding: 8px 14px;
+        border-radius: 999px;
+        font-size: 0.85rem;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+
+    .status-pendiente {
+        background: #fff4d8;
+        color: #9a6b00;
+    }
+
+    .status-confirmada {
+        background: #dff7e7;
+        color: #1d7a3d;
+    }
+
+    .status-rechazada {
+        background: #ffe0e0;
+        color: #b42318;
+    }
+
+    .status-cancelada,
+    .status-cancelada_cliente,
+    .status-cancelada_admin {
+        background: #ececec;
+        color: #666;
+    }
+
+    .status-completada {
+        background: #e8e4ff;
+        color: #5b3cc4;
+    }
+
+    .status-no_asistio {
+        background: #f5dff7;
+        color: #8b2fa1;
+    }
+
+    .appointment-info {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 14px;
+        margin-top: 18px;
+    }
+
+    .info-box {
+        background: #fff8fb;
+        border-radius: 16px;
+        padding: 14px 15px;
+        border: 1px solid #f7dbe7;
+    }
+
+    .info-label {
+        display: block;
+        color: #888;
+        font-size: 0.84rem;
+        margin-bottom: 5px;
+    }
+
+    .info-value {
+        color: #222;
+        font-weight: 600;
+        line-height: 1.5;
+    }
+
+    .appointment-notes {
+        margin-top: 18px;
+        padding: 14px 15px;
+        border-radius: 16px;
+        background: #fff8fb;
+        border: 1px solid #f7dbe7;
+    }
+
+    .appointment-notes .info-label {
+        margin-bottom: 8px;
+    }
+
+    .appointment-note-text {
+        color: #555;
+        margin: 0;
+        line-height: 1.6;
+        white-space: pre-line;
+    }
+
+    .appointment-footer {
+        margin-top: 20px;
+        font-size: 0.92rem;
+        color: #888;
+    }
+
+    .empty-state {
+        background: white;
+        border-radius: 24px;
+        padding: 42px 26px;
+        text-align: center;
+        box-shadow: 0 14px 35px rgba(0, 0, 0, 0.08);
+        border: 1px solid #f3e3ea;
+    }
+
+    .empty-state i {
+        font-size: 2.2rem;
+        color: #ff4d94;
+        margin-bottom: 14px;
+    }
+
+    .empty-state h4 {
+        font-weight: 700;
+        color: #222;
+        margin-bottom: 10px;
+    }
+
+    .empty-state p {
+        color: #777;
+        max-width: 520px;
+        margin: 0 auto 20px;
+        line-height: 1.6;
+    }
+
+    .btn-main {
+        background: #ff4d94;
+        color: white;
+        border: none;
+        border-radius: 32px;
+        padding: 12px 22px;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-block;
+        transition: 0.3s;
+    }
+
+    .btn-main:hover {
+        background: #e60073;
+        color: white;
+        transform: translateY(-2px);
+    }
+
+    @media (max-width: 768px) {
+        .appointments-title {
+            font-size: 1.95rem;
+        }
+
+        .appointment-info {
+            grid-template-columns: 1fr;
+        }
+
+        .appointment-top {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .appointments-title {
+            font-size: 1.7rem;
+        }
+
+        .appointment-card,
+        .empty-state {
+            padding: 22px 16px;
+            border-radius: 20px;
+        }
+    }
+</style>
+
+<div class="appointments-header">
+    <h1 class="appointments-title">Mis Citas</h1>
+    <p class="appointments-subtitle">
+        Aquí puedes revisar el estado de tus reservas, ver los servicios agendados
+        y confirmar que todo vaya marchando tan bonito como tus uñas.
+    </p>
+</div>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+            <div class="alert alert-{{ category }} custom-alert">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
+
+{% if citas %}
+    <div class="row g-4">
+        {% for cita in citas %}
+            {% set estado_class = {
+                'pendiente': 'status-pendiente',
+                'confirmada': 'status-confirmada',
+                'rechazada': 'status-rechazada',
+                'cancelada': 'status-cancelada',
+                'cancelada_cliente': 'status-cancelada_cliente',
+                'cancelada_admin': 'status-cancelada_admin',
+                'completada': 'status-completada',
+                'no_asistio': 'status-no_asistio'
+            } %}
+            <div class="col-12 col-lg-6">
+                <div class="appointment-card">
+                    <div class="appointment-top">
+                        <div>
+                            <div class="appointment-id">Reserva #{{ cita.id }}</div>
+                            <h3 class="appointment-services">
+                                {{ cita.servicios if cita.servicios else "Servicio no especificado" }}
+                            </h3>
+                        </div>
+
+                        <span class="status-badge {{ estado_class.get(cita.estado, 'status-cancelada') }}">
+                            {{ cita.estado.replace('_', ' ')|title }}
+                        </span>
+                    </div>
+
+                    <div class="appointment-info">
+                        <div class="info-box">
+                            <span class="info-label">Fecha</span>
+                            <div class="info-value">{{ cita.fecha.strftime('%d-%m-%Y') }}</div>
+                        </div>
+
+                        <div class="info-box">
+                            <span class="info-label">Horario</span>
+                            <div class="info-value">
+                                {{ cita.hora_inicio.strftime('%H:%M') }} - {{ cita.hora_fin.strftime('%H:%M') }}
+                            </div>
+                        </div>
+
+                        <div class="info-box">
+                            <span class="info-label">Manicurista</span>
+                            <div class="info-value">{{ cita.manicurista_nombre }}</div>
+                        </div>
+
+                        <div class="info-box">
+                            <span class="info-label">Estado actual</span>
+                            <div class="info-value">{{ cita.estado.replace('_', ' ')|title }}</div>
+                        </div>
+                    </div>
+
+                    {% if cita.notas %}
+                        <div class="appointment-notes">
+                            <span class="info-label">Notas adicionales</span>
+                            <p class="appointment-note-text">{{ cita.notas }}</p>
+                        </div>
+                    {% endif %}
+
+                    <div class="appointment-footer">
+                        {% if cita.estado == "pendiente" %}
+                            Tu solicitud está esperando confirmación del estudio.
+                        {% elif cita.estado == "confirmada" %}
+                            Tu cita ya fue confirmada. Todo en orden.
+                        {% elif cita.estado == "rechazada" %}
+                            Esta solicitud no pudo ser aprobada. Puedes intentar con otro horario.
+                        {% elif cita.estado == "completada" %}
+                            Esta cita ya fue realizada.
+                        {% elif cita.estado == "cancelada_cliente" %}
+                            Esta cita fue cancelada por la clienta.
+                        {% elif cita.estado == "cancelada_admin" %}
+                            Esta cita fue cancelada por administración.
+                        {% elif cita.estado == "no_asistio" %}
+                            La cita quedó registrada como no asistida.
+                        {% else %}
+                            Revisa el estado de tu cita ante cualquier cambio.
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="empty-state">
+        <i class="fa-regular fa-calendar-xmark"></i>
+        <h4>Aún no tienes citas registradas</h4>
+        <p>
+            Cuando hagas tu primera reserva, aparecerá aquí con su fecha, horario,
+            manicurista y estado. Por ahora está más vacío que agenda de lunes feriado.
+        </p>
+        <a href="{{ url_for('reservar') }}" class="btn-main">
+            Reservar ahora
+        </a>
+    </div>
+{% endif %}
+
+{% endblock %}

@@ -2,7 +2,7 @@
 {% block content %}
 
 <style>
-    .login-wrapper {
+    .admin-login-wrapper {
         min-height: 80vh;
         display: flex;
         align-items: center;
@@ -10,16 +10,17 @@
         padding: 30px 0;
     }
 
-    .login-card {
+    .admin-login-card {
         width: 100%;
         max-width: 460px;
         background: white;
         border-radius: 24px;
         padding: 36px 30px;
         box-shadow: 0 14px 35px rgba(0, 0, 0, 0.08);
+        border: 1px solid #f3e3ea;
     }
 
-    .login-icon {
+    .admin-login-icon {
         width: 72px;
         height: 72px;
         margin: 0 auto 18px;
@@ -32,17 +33,20 @@
         font-size: 1.6rem;
     }
 
-    .login-title {
+    .admin-login-title {
         font-size: 2rem;
         font-weight: 700;
         color: #222;
         margin-bottom: 8px;
+        text-align: center;
     }
 
-    .login-subtitle {
+    .admin-login-subtitle {
         color: #777;
         margin-bottom: 28px;
         font-size: 0.98rem;
+        text-align: center;
+        line-height: 1.6;
     }
 
     .form-label {
@@ -62,7 +66,7 @@
         box-shadow: 0 0 0 0.2rem rgba(255, 77, 148, 0.15);
     }
 
-    .btn-login {
+    .btn-admin-login {
         background: #ff4d94;
         color: white;
         border: none;
@@ -72,13 +76,13 @@
         transition: 0.3s;
     }
 
-    .btn-login:hover {
+    .btn-admin-login:hover {
         background: #e60073;
         color: white;
         transform: translateY(-2px);
     }
 
-    .btn-login:disabled {
+    .btn-admin-login:disabled {
         opacity: 0.75;
         cursor: not-allowed;
         transform: none;
@@ -92,7 +96,7 @@
         margin-bottom: 18px;
     }
 
-    .login-links {
+    .admin-login-links {
         margin-top: 22px;
         text-align: center;
         color: #666;
@@ -100,13 +104,13 @@
         line-height: 1.9;
     }
 
-    .login-links a {
+    .admin-login-links a {
         color: #ff4d94;
         text-decoration: none;
         font-weight: 600;
     }
 
-    .login-links a:hover {
+    .admin-login-links a:hover {
         color: #e60073;
     }
 
@@ -117,27 +121,27 @@
     }
 
     @media (max-width: 768px) {
-        .login-card {
+        .admin-login-card {
             padding: 28px 20px;
             border-radius: 20px;
         }
 
-        .login-title {
+        .admin-login-title {
             font-size: 1.75rem;
         }
     }
 
     @media (max-width: 480px) {
-        .login-wrapper {
+        .admin-login-wrapper {
             min-height: auto;
             padding: 16px 0;
         }
 
-        .login-card {
+        .admin-login-card {
             padding: 24px 16px;
         }
 
-        .login-icon {
+        .admin-login-icon {
             width: 62px;
             height: 62px;
             font-size: 1.35rem;
@@ -145,17 +149,17 @@
     }
 </style>
 
-<div class="login-wrapper">
-    <div class="login-card">
-        <div class="text-center">
-            <div class="login-icon">
-                <i class="fa-solid fa-user"></i>
-            </div>
-            <h2 class="login-title">Inicia sesión</h2>
-            <p class="login-subtitle">
-                Entra a tu cuenta para reservar y revisar tus citas.
-            </p>
+<div class="admin-login-wrapper">
+    <div class="admin-login-card">
+        <div class="admin-login-icon">
+            <i class="fa-solid fa-shield-halved"></i>
         </div>
+
+        <h2 class="admin-login-title">Acceso Administrador</h2>
+        <p class="admin-login-subtitle">
+            Entrada exclusiva para la administración de Kerly Studio.
+            Aquí puedes gestionar citas, servicios, horarios y el funcionamiento completo del estudio.
+        </p>
 
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
@@ -167,15 +171,15 @@
             {% endif %}
         {% endwith %}
 
-        <form method="POST" novalidate id="loginForm">
+        <form method="POST" novalidate id="adminLoginForm">
             <div class="mb-3">
-                <label for="email" class="form-label">Correo electrónico</label>
+                <label for="email" class="form-label">Correo administrador</label>
                 <input
                     type="email"
                     class="form-control"
                     id="email"
                     name="email"
-                    placeholder="correo@ejemplo.com"
+                    placeholder="admin@kerlystudio.com"
                     value="{{ request.form.get('email', '') }}"
                     required
                 >
@@ -191,18 +195,16 @@
                     placeholder="Ingresa tu contraseña"
                     required
                 >
-                <div class="helper-text">Sí, esa misma contraseña que juraste no olvidar jamás.</div>
+                <div class="helper-text">Zona privada. Aquí mejor no improvisar la clave.</div>
             </div>
 
-            <button type="submit" class="btn btn-login w-100" id="loginBtn">
-                Entrar
+            <button type="submit" class="btn btn-admin-login w-100" id="adminLoginBtn">
+                Entrar al panel
             </button>
         </form>
 
-        <div class="login-links">
-            ¿Aún no tienes cuenta? <a href="{{ url_for('register') }}">Regístrate aquí</a>
-            <br>
-            <a href="{{ url_for('admin_login') }}">Acceso administrativo</a>
+        <div class="admin-login-links">
+            <a href="{{ url_for('login') }}">Acceso clientas</a>
             <br>
             <a href="{{ url_for('home') }}">Volver al inicio</a>
         </div>
@@ -210,8 +212,8 @@
 </div>
 
 <script>
-document.getElementById("loginForm").addEventListener("submit", function() {
-    const btn = document.getElementById("loginBtn");
+document.getElementById("adminLoginForm").addEventListener("submit", function() {
+    const btn = document.getElementById("adminLoginBtn");
     btn.innerText = "Entrando...";
     btn.disabled = true;
 });
