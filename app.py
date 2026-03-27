@@ -214,12 +214,30 @@ def seed_initial_data():
     admin_password = os.getenv("ADMIN_PASSWORD", "#Ks2026$")
     admin_nombre = os.getenv("ADMIN_NAME", "Administrador")
 
-    admin = fetch_one("SELECT id FROM usuarios WHERE email = %s", (admin_email,))
-    if not admin:
+    existing_admin = fetch_one("SELECT id FROM usuarios WHERE rol = 'admin' LIMIT 1")
+
+    if existing_admin:
         execute_query(
             """
-            INSERT INTO usuarios (nombre, email, telefono, password_hash, rol)
-            VALUES (%s, %s, %s, %s, 'admin')
+            UPDATE usuarios
+            SET nombre = %s,
+                email = %s,
+                password_hash = %s,
+                activo = TRUE
+            WHERE id = %s
+            """,
+            (
+                admin_nombre,
+                admin_email,
+                generate_password_hash(admin_password),
+                existing_admin["id"],
+            ),
+        )
+    else:
+        execute_query(
+            """
+            INSERT INTO usuarios (nombre, email, telefono, password_hash, rol, activo)
+            VALUES (%s, %s, %s, %s, 'admin', TRUE)
             """,
             (
                 admin_nombre,
@@ -256,7 +274,7 @@ def seed_initial_data():
 
         manicuristas = fetch_all("SELECT id FROM manicuristas")
         for m in manicuristas:
-            for dia_semana in range(0, 6):  # lunes a sábado
+            for dia_semana in range(0, 6):
                 execute_query(
                     """
                     INSERT INTO horarios_manicurista (manicurista_id, dia_semana, hora_inicio, hora_fin)
