@@ -211,7 +211,7 @@ def init_db():
 
 def seed_initial_data():
     admin_email = os.getenv("ADMIN_EMAIL", "admin@kerlystudio.com")
-    admin_password = os.getenv("ADMIN_PASSWORD", "Admin2026$")
+    admin_password = os.getenv("ADMIN_PASSWORD", "#Ks2026$")
     admin_nombre = os.getenv("ADMIN_NAME", "Administrador")
 
     admin = fetch_one("SELECT id FROM usuarios WHERE email = %s", (admin_email,))
