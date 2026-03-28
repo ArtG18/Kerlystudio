@@ -37,6 +37,7 @@
       font-weight: 700;
       color: #c2185b !important;
       font-size: 1.1rem;
+      text-decoration: none;
     }
 
     .brand-logo {
@@ -71,6 +72,11 @@
       font-weight: 500;
       box-shadow: 0 8px 20px rgba(230, 0, 115, 0.18);
       transition: 0.25s ease;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
     }
 
     .btn-pink:hover {
@@ -86,12 +92,30 @@
       padding: 10px 18px;
       font-weight: 500;
       transition: 0.25s ease;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
     }
 
     .btn-soft:hover {
       background: #fff5f9;
       color: #e60073;
       transform: translateY(-1px);
+    }
+
+    .admin-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      border-radius: 30px;
+      background: #fff5f9;
+      color: #b0005a;
+      font-weight: 600;
+      font-size: 0.95rem;
+      border: 1px solid #ffd0e3;
     }
 
     .main-container {
@@ -351,6 +375,11 @@
       .btn-soft {
         width: 100%;
       }
+
+      .admin-pill {
+        justify-content: center;
+        width: 100%;
+      }
     }
 
     @media (max-width: 480px) {
@@ -423,22 +452,6 @@
 
       <div class="collapse navbar-collapse" id="mainNavbar">
         <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-          <li class="nav-item">
-            <a class="nav-link" href="{{ url_for('home') }}">Inicio</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="{{ url_for('catalogo') }}">Catálogo</a>
-          </li>
-
-          {% if logged_user and logged_user.rol == 'cliente' %}
-            <li class="nav-item">
-              <a class="nav-link" href="{{ url_for('reservar') }}">Reservar</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="{{ url_for('mis_citas') }}">Mis citas</a>
-            </li>
-          {% endif %}
-
           {% if logged_user and logged_user.rol == 'admin' %}
             <li class="nav-item">
               <a class="nav-link" href="{{ url_for('admin_dashboard') }}">Panel</a>
@@ -455,19 +468,38 @@
             <li class="nav-item">
               <a class="nav-link" href="{{ url_for('admin_horarios') }}">Horarios</a>
             </li>
+          {% else %}
+            <li class="nav-item">
+              <a class="nav-link" href="{{ url_for('home') }}">Inicio</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{{ url_for('catalogo') }}">Catálogo</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{{ url_for('reservar') }}">Reservar</a>
+            </li>
           {% endif %}
         </ul>
 
-        <div class="d-flex flex-column flex-lg-row gap-2 mt-3 mt-lg-0">
-          {% if not logged_user %}
-            <a href="{{ url_for('login') }}" class="btn btn-soft">Iniciar sesión</a>
-            <a href="{{ url_for('register') }}" class="btn btn-pink">Registro</a>
-            <a href="{{ url_for('admin_login') }}" class="btn btn-soft">Admin</a>
-          {% else %}
-            <span class="d-flex align-items-center px-2 text-muted fw-medium">
+        <div class="d-flex flex-column flex-lg-row gap-2 mt-3 mt-lg-0 align-items-lg-center">
+          {% if logged_user and logged_user.rol == 'admin' %}
+            <span class="admin-pill">
+              <i class="fa-solid fa-shield-halved"></i>
               {{ logged_user.nombre }}
             </span>
-            <a href="{{ url_for('logout') }}" class="btn btn-pink">Cerrar sesión</a>
+            <a href="{{ url_for('logout') }}" class="btn btn-pink">
+              <i class="fa-solid fa-right-from-bracket"></i>
+              Cerrar sesión
+            </a>
+          {% else %}
+            <a href="{{ url_for('reservar') }}" class="btn btn-pink">
+              <i class="fa-solid fa-calendar-check"></i>
+              Reservar ahora
+            </a>
+            <a href="{{ url_for('admin_login') }}" class="btn btn-soft">
+              <i class="fa-solid fa-lock"></i>
+              Acceso admin
+            </a>
           {% endif %}
         </div>
       </div>

@@ -269,7 +269,7 @@
     <div>
         <h1 class="admin-title">Gestión de Servicios</h1>
         <p class="admin-subtitle">
-            Crea, edita y activa o desactiva los servicios del estudio sin tener que pelearte con el catálogo cada semana.
+            Crea, edita, categoriza y activa o desactiva los servicios del estudio sin depender de nombres improvisados para que todo se vea ordenado.
         </p>
     </div>
 </div>
@@ -307,6 +307,21 @@
                         value="{{ servicio_editar.nombre if servicio_editar else '' }}"
                         required
                     >
+                </div>
+
+                <div class="mb-3">
+                    <label for="categoria" class="form-label">Categoría</label>
+                    <select class="form-select" id="categoria" name="categoria" required>
+                        <option value="">Selecciona una categoría</option>
+                        {% for categoria in categorias_servicio %}
+                            <option
+                                value="{{ categoria }}"
+                                {% if servicio_editar and servicio_editar.categoria == categoria %}selected{% endif %}
+                            >
+                                {{ categoria }}
+                            </option>
+                        {% endfor %}
+                    </select>
                 </div>
 
                 <div class="mb-3">
@@ -384,6 +399,7 @@
                         <thead>
                             <tr>
                                 <th>Servicio</th>
+                                <th>Categoría</th>
                                 <th>Duración</th>
                                 <th>Precio</th>
                                 <th>Estado</th>
@@ -398,6 +414,10 @@
                                         <p class="service-description">
                                             {{ servicio.descripcion if servicio.descripcion else "Sin descripción todavía." }}
                                         </p>
+                                    </td>
+
+                                    <td>
+                                        <div class="service-meta">{{ servicio.categoria }}</div>
                                     </td>
 
                                     <td>
@@ -441,8 +461,7 @@
                 <i class="fa-regular fa-rectangle-list"></i>
                 <h4>Aún no hay servicios cargados</h4>
                 <p>
-                    Agrega tu primer servicio desde el formulario y empezará a aparecer en el catálogo
-                    y en la reserva de citas.
+                    Agrega tu primer servicio desde el formulario y empezará a aparecer en el catálogo y en la reserva de citas.
                 </p>
             </div>
         {% endif %}

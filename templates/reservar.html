@@ -243,7 +243,7 @@
 <div class="booking-header">
     <h1 class="booking-title">Reserva tu cita</h1>
     <p class="booking-subtitle">
-        Elige tus servicios, selecciona una manicurista y revisa los horarios disponibles.
+        Completa tus datos, elige tus servicios, selecciona una manicurista y revisa los horarios disponibles.
         Tu solicitud quedará pendiente hasta que la administración la confirme.
     </p>
 </div>
@@ -264,6 +264,47 @@
             <h3 class="section-title">Datos de la reserva</h3>
 
             <form method="POST" id="bookingForm" novalidate>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="nombre" class="form-label">Nombre completo</label>
+                        <input
+                            type="text"
+                            class="form-control"
+                            id="nombre"
+                            name="nombre"
+                            placeholder="Ej: Martina González"
+                            value="{{ request.form.get('nombre', '') }}"
+                            required
+                        >
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label for="telefono" class="form-label">Teléfono</label>
+                        <input
+                            type="text"
+                            class="form-control"
+                            id="telefono"
+                            name="telefono"
+                            placeholder="+56 9 1234 5678"
+                            value="{{ request.form.get('telefono', '') }}"
+                            required
+                        >
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label for="email" class="form-label">Correo electrónico</label>
+                    <input
+                        type="email"
+                        class="form-control"
+                        id="email"
+                        name="email"
+                        placeholder="correo@ejemplo.com"
+                        value="{{ request.form.get('email', '') }}"
+                        required
+                    >
+                </div>
+
                 <div class="mb-4">
                     <label class="form-label">Selecciona uno o más servicios</label>
                     <div class="service-grid">
@@ -363,6 +404,11 @@
 
             <div class="summary-list">
                 <div class="summary-item">
+                    <span class="summary-label">Cliente</span>
+                    <div class="summary-value" id="summaryClient">Sin completar</div>
+                </div>
+
+                <div class="summary-item">
                     <span class="summary-label">Servicios seleccionados</span>
                     <div class="summary-value" id="summaryServices">Aún no has seleccionado servicios</div>
                 </div>
@@ -394,7 +440,7 @@
             </div>
 
             <p class="small-note mb-0">
-                La cita quedará pendiente hasta que el estudio la confirme. Todo bajo control, no es caos, es protocolo.
+                La cita quedará pendiente hasta que el estudio la confirme. Más simple para la clienta, menos vueltas para todo el mundo.
             </p>
         </div>
     </div>
@@ -409,6 +455,11 @@
     const bookingForm = document.getElementById('bookingForm');
     const bookingBtn = document.getElementById('bookingBtn');
 
+    const nombreInput = document.getElementById('nombre');
+    const telefonoInput = document.getElementById('telefono');
+    const emailInput = document.getElementById('email');
+
+    const summaryClient = document.getElementById('summaryClient');
     const summaryServices = document.getElementById('summaryServices');
     const summaryDuration = document.getElementById('summaryDuration');
     const summaryManicurista = document.getElementById('summaryManicurista');
@@ -447,6 +498,15 @@
             : 'Sin seleccionar';
         const selectedDate = fechaInput.value || 'Sin seleccionar';
         const selectedTime = horaInicioSelect.value || 'Sin seleccionar';
+
+        const nombre = nombreInput.value.trim();
+        const telefono = telefonoInput.value.trim();
+
+        if (nombre || telefono) {
+            summaryClient.textContent = [nombre, telefono].filter(Boolean).join(' · ');
+        } else {
+            summaryClient.textContent = 'Sin completar';
+        }
 
         summaryServices.textContent = selectedServices.length
             ? selectedServices.map(item => item.name).join(', ')
@@ -539,6 +599,9 @@
     });
 
     horaInicioSelect.addEventListener('change', updateSummary);
+    nombreInput.addEventListener('input', updateSummary);
+    telefonoInput.addEventListener('input', updateSummary);
+    emailInput.addEventListener('input', updateSummary);
 
     bookingForm.addEventListener('submit', function () {
         bookingBtn.innerText = 'Enviando...';

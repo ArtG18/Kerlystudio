@@ -1,6 +1,7 @@
 import os
 from functools import wraps
 from datetime import datetime, date, timedelta, time
+from collections import defaultdict
 
 import psycopg2
 from psycopg2.extras import RealDictCursor
@@ -28,6 +29,10 @@ def get_conn():
     database_url = app.config["DATABASE_URL"]
     if not database_url:
         raise RuntimeError("DATABASE_URL no configurada")
+
+    if database_url.startswith("postgres://"):
+        database_url = database_url.replace("postgres://", "postgresql://", 1)
+
     return psycopg2.connect(database_url, cursor_factory=RealDictCursor)
 
 
@@ -165,6 +170,13 @@ def init_db():
 
             cur.execute(
                 """
+                ALTER TABLE servicios
+                ADD COLUMN IF NOT EXISTS categoria VARCHAR(50) NOT NULL DEFAULT '💅 Manicure';
+                """
+            )
+
+            cur.execute(
+                """
                 CREATE TABLE IF NOT EXISTS horarios_manicurista (
                     id SERIAL PRIMARY KEY,
                     manicurista_id INTEGER NOT NULL REFERENCES manicuristas(id) ON DELETE CASCADE,
@@ -250,16 +262,16 @@ def seed_initial_data():
     has_services = fetch_one("SELECT id FROM servicios LIMIT 1")
     if not has_services:
         default_services = [
-            ("Manicure Permanente", "Esmaltado permanente con preparación básica.", 90, 15000),
-            ("Kapping", "Refuerzo sobre uña natural.", 120, 20000),
-            ("Extensión de Uñas", "Set completo de extensión.", 180, 30000),
-            ("Pedicure Spa", "Pedicure con exfoliación e hidratación.", 90, 18000),
+            ("Manicure Permanente", "Esmaltado permanente con preparación básica.", 90, 15000, "💅 Manicure"),
+            ("Kapping", "Refuerzo sobre uña natural.", 120, 20000, "💪 Kapping"),
+            ("Extensión de Uñas", "Set completo de extensión.", 180, 30000, "✨ Extensiones"),
+            ("Pedicure Spa", "Pedicure con exfoliación e hidratación.", 90, 18000, "🦶 Pedicure"),
         ]
         for service in default_services:
             execute_query(
                 """
-                INSERT INTO servicios (nombre, descripcion, duracion_min, precio)
-                VALUES (%s, %s, %s, %s)
+                INSERT INTO servicios (nombre, descripcion, duracion_min, precio, categoria)
+                VALUES (%s, %s, %s, %s, %s)
                 """,
                 service,
             )
@@ -274,7 +286,7 @@ def seed_initial_data():
 
         manicuristas = fetch_all("SELECT id FROM manicuristas")
         for m in manicuristas:
-            for dia_semana in range(0, 6):
+            for dia_semana in range(0, 6):  # lunes a sábado
                 execute_query(
                     """
                     INSERT INTO horarios_manicurista (manicurista_id, dia_semana, hora_inicio, hora_fin)
@@ -301,7 +313,7 @@ def get_selected_services(service_ids):
     placeholders = ", ".join(["%s"] * len(service_ids))
     return fetch_all(
         f"""
-        SELECT id, nombre, duracion_min, precio
+        SELECT id, nombre, duracion_min, precio, categoria
         FROM servicios
         WHERE activo = TRUE AND id IN ({placeholders})
         """,
@@ -382,6 +394,16 @@ def validate_future_date(target_date):
     return target_date >= date.today()
 
 
+def agrupar_servicios_por_categoria(servicios_lista):
+    servicios_agrupados = defaultdict(list)
+
+    for s in servicios_lista:
+        categoria = s.get("categoria") or "🧴 Otros"
+        servicios_agrupados[categoria].append(s)
+
+    return dict(servicios_agrupados)
+
+
 # =========================
 # PUBLIC ROUTES
 # =========================
@@ -389,7 +411,7 @@ def validate_future_date(target_date):
 def home():
     featured_services = fetch_all(
         """
-        SELECT id, nombre, descripcion, duracion_min, precio
+        SELECT id, nombre, descripcion, duracion_min, precio, categoria
         FROM servicios
         WHERE activo = TRUE
         ORDER BY id
@@ -401,15 +423,16 @@ def home():
 
 @app.route("/catalogo")
 def catalogo():
-    servicios = fetch_all(
+    servicios_lista = fetch_all(
         """
-        SELECT id, nombre, descripcion, duracion_min, precio
+        SELECT id, nombre, descripcion, duracion_min, precio, categoria
         FROM servicios
         WHERE activo = TRUE
-        ORDER BY nombre ASC
+        ORDER BY categoria ASC, nombre ASC
         """
     )
-    return render_template("catalogo.html", servicios=servicios)
+    servicios_agrupados = agrupar_servicios_por_categoria(servicios_lista)
+    return render_template("catalogo.html", servicios_agrupados=servicios_agrupados)
 
 
 @app.route("/registro", methods=["GET", "POST"])
@@ -476,7 +499,7 @@ def login():
         session["nombre"] = user["nombre"]
 
         flash(f"Bienvenida, {user['nombre']}.", "success")
-        return redirect(url_for("mis_citas"))
+        return redirect(url_for("home"))
 
     return render_template("login.html")
 
@@ -518,20 +541,17 @@ def logout():
 
 
 @app.route("/reservar", methods=["GET", "POST"])
-@login_required
 def reservar():
-    if session.get("rol") != "cliente":
-        flash("Esta sección es para clientas.", "warning")
-        return redirect(url_for("admin_dashboard"))
-
-    servicios = fetch_all(
+    servicios_lista = fetch_all(
         """
-        SELECT id, nombre, duracion_min, precio
+        SELECT id, nombre, duracion_min, precio, categoria
         FROM servicios
         WHERE activo = TRUE
-        ORDER BY nombre
+        ORDER BY categoria ASC, nombre ASC
         """
     )
+    servicios_agrupados = agrupar_servicios_por_categoria(servicios_lista)
+
     manicuristas = fetch_all(
         """
         SELECT id, nombre
@@ -542,17 +562,29 @@ def reservar():
     )
 
     if request.method == "POST":
+        nombre = request.form.get("nombre", "").strip()
+        email = request.form.get("email", "").strip().lower()
+        telefono = request.form.get("telefono", "").strip()
+
         service_ids = request.form.getlist("servicios")
         manicurista_id = request.form.get("manicurista_id", type=int)
         fecha_raw = request.form.get("fecha", "")
         hora_inicio_raw = request.form.get("hora_inicio", "")
         notas = request.form.get("notas", "").strip()
 
+        if not nombre or not email or not telefono:
+            flash("Debes completar nombre, correo y teléfono.", "danger")
+            return render_template(
+                "reservar.html",
+                servicios_agrupados=servicios_agrupados,
+                manicuristas=manicuristas,
+            )
+
         if not service_ids or not manicurista_id or not fecha_raw or not hora_inicio_raw:
             flash("Debes completar servicio, manicurista, fecha y hora.", "danger")
             return render_template(
                 "reservar.html",
-                servicios=servicios,
+                servicios_agrupados=servicios_agrupados,
                 manicuristas=manicuristas,
             )
 
@@ -564,7 +596,7 @@ def reservar():
             flash("Datos de fecha u hora inválidos.", "danger")
             return render_template(
                 "reservar.html",
-                servicios=servicios,
+                servicios_agrupados=servicios_agrupados,
                 manicuristas=manicuristas,
             )
 
@@ -572,7 +604,7 @@ def reservar():
             flash("No puedes reservar en una fecha pasada.", "danger")
             return render_template(
                 "reservar.html",
-                servicios=servicios,
+                servicios_agrupados=servicios_agrupados,
                 manicuristas=manicuristas,
             )
 
@@ -581,7 +613,7 @@ def reservar():
             flash("Uno o más servicios no son válidos.", "danger")
             return render_template(
                 "reservar.html",
-                servicios=servicios,
+                servicios_agrupados=servicios_agrupados,
                 manicuristas=manicuristas,
             )
 
@@ -595,7 +627,7 @@ def reservar():
             flash("La manicurista no atiende ese día.", "danger")
             return render_template(
                 "reservar.html",
-                servicios=servicios,
+                servicios_agrupados=servicios_agrupados,
                 manicuristas=manicuristas,
             )
 
@@ -603,7 +635,7 @@ def reservar():
             flash("El horario seleccionado queda fuera de la jornada disponible.", "danger")
             return render_template(
                 "reservar.html",
-                servicios=servicios,
+                servicios_agrupados=servicios_agrupados,
                 manicuristas=manicuristas,
             )
 
@@ -611,8 +643,40 @@ def reservar():
             flash("Ese horario ya no está disponible.", "warning")
             return render_template(
                 "reservar.html",
-                servicios=servicios,
+                servicios_agrupados=servicios_agrupados,
                 manicuristas=manicuristas,
+            )
+
+        cliente = fetch_one(
+            "SELECT id FROM usuarios WHERE email = %s LIMIT 1",
+            (email,),
+        )
+
+        if not cliente:
+            cliente = execute_query(
+                """
+                INSERT INTO usuarios (nombre, email, telefono, password_hash, rol, activo)
+                VALUES (%s, %s, %s, %s, 'cliente', TRUE)
+                RETURNING id
+                """,
+                (
+                    nombre,
+                    email,
+                    telefono,
+                    generate_password_hash(os.urandom(16).hex()),
+                ),
+                fetchone=True,
+            )
+        else:
+            execute_query(
+                """
+                UPDATE usuarios
+                SET nombre = %s,
+                    telefono = %s,
+                    activo = TRUE
+                WHERE id = %s
+                """,
+                (nombre, telefono, cliente["id"]),
             )
 
         cita = execute_query(
@@ -621,7 +685,7 @@ def reservar():
             VALUES (%s, %s, %s, %s, %s, 'pendiente', %s)
             RETURNING id
             """,
-            (session["user_id"], manicurista_id, fecha, hora_inicio, hora_fin, notas),
+            (cliente["id"], manicurista_id, fecha, hora_inicio, hora_fin, notas),
             fetchone=True,
         )
 
@@ -632,11 +696,11 @@ def reservar():
             )
 
         flash("Tu solicitud de cita fue enviada y quedó pendiente de confirmación.", "success")
-        return redirect(url_for("mis_citas"))
+        return redirect(url_for("reservar"))
 
     return render_template(
         "reservar.html",
-        servicios=servicios,
+        servicios_agrupados=servicios_agrupados,
         manicuristas=manicuristas,
     )
 
@@ -672,7 +736,6 @@ def mis_citas():
 
 
 @app.route("/api/disponibilidad")
-@login_required
 def api_disponibilidad():
     manicurista_id = request.args.get("manicurista_id", type=int)
     fecha_raw = request.args.get("fecha", "")
@@ -880,14 +943,23 @@ def marcar_no_asistio(cita_id):
 @app.route("/admin/servicios", methods=["GET", "POST"])
 @admin_required
 def admin_servicios():
+    categorias_servicio = [
+        "💅 Manicure",
+        "🦶 Pedicure",
+        "✨ Extensiones",
+        "💪 Kapping",
+        "🧴 Otros",
+    ]
+
     if request.method == "POST":
         nombre = request.form.get("nombre", "").strip()
         descripcion = request.form.get("descripcion", "").strip()
         duracion_min = request.form.get("duracion_min", type=int)
         precio = request.form.get("precio", type=float)
+        categoria = request.form.get("categoria", "").strip()
 
-        if not nombre or duracion_min is None or precio is None:
-            flash("Completa nombre, duración y precio.", "danger")
+        if not nombre or duracion_min is None or precio is None or not categoria:
+            flash("Completa nombre, categoría, duración y precio.", "danger")
             return redirect(url_for("admin_servicios"))
 
         if duracion_min <= 0:
@@ -900,16 +972,16 @@ def admin_servicios():
 
         execute_query(
             """
-            INSERT INTO servicios (nombre, descripcion, duracion_min, precio)
-            VALUES (%s, %s, %s, %s)
+            INSERT INTO servicios (nombre, descripcion, duracion_min, precio, categoria)
+            VALUES (%s, %s, %s, %s, %s)
             """,
-            (nombre, descripcion, duracion_min, precio),
+            (nombre, descripcion, duracion_min, precio, categoria),
         )
         flash("Servicio agregado correctamente.", "success")
         return redirect(url_for("admin_servicios"))
 
     servicios = fetch_all(
-        "SELECT * FROM servicios ORDER BY activo DESC, nombre ASC"
+        "SELECT * FROM servicios ORDER BY activo DESC, categoria ASC, nombre ASC"
     )
     servicio_editar_id = request.args.get("editar", type=int)
     servicio_editar = None
@@ -924,6 +996,7 @@ def admin_servicios():
         "admin_servicios.html",
         servicios=servicios,
         servicio_editar=servicio_editar,
+        categorias_servicio=categorias_servicio,
     )
 
 
@@ -939,9 +1012,10 @@ def editar_servicio(servicio_id):
     descripcion = request.form.get("descripcion", "").strip()
     duracion_min = request.form.get("duracion_min", type=int)
     precio = request.form.get("precio", type=float)
+    categoria = request.form.get("categoria", "").strip()
 
-    if not nombre or duracion_min is None or precio is None:
-        flash("Completa nombre, duración y precio.", "danger")
+    if not nombre or duracion_min is None or precio is None or not categoria:
+        flash("Completa nombre, categoría, duración y precio.", "danger")
         return redirect(url_for("admin_servicios", editar=servicio_id))
 
     if duracion_min <= 0:
@@ -958,10 +1032,11 @@ def editar_servicio(servicio_id):
         SET nombre = %s,
             descripcion = %s,
             duracion_min = %s,
-            precio = %s
+            precio = %s,
+            categoria = %s
         WHERE id = %s
         """,
-        (nombre, descripcion, duracion_min, precio, servicio_id),
+        (nombre, descripcion, duracion_min, precio, categoria, servicio_id),
     )
 
     flash("Servicio actualizado correctamente.", "success")

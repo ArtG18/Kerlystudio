@@ -218,6 +218,9 @@
 
     #calendar {
         min-height: 500px;
+        background: #fff;
+        border-radius: 20px;
+        padding: 12px;
     }
 
     .calendar-loading {
@@ -254,6 +257,109 @@
         line-height: 1.6;
     }
 
+    /* ===== FULLCALENDAR MAKEOVER ===== */
+    .fc {
+        font-family: 'Poppins', sans-serif;
+    }
+
+    .fc .fc-toolbar.fc-header-toolbar {
+        margin-bottom: 1.2rem;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .fc .fc-toolbar-title {
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: #222;
+    }
+
+    .fc .fc-button {
+        background: #fff !important;
+        color: #ff4d94 !important;
+        border: 1px solid #ffd0e3 !important;
+        border-radius: 14px !important;
+        padding: 0.5rem 0.9rem !important;
+        font-weight: 600 !important;
+        box-shadow: none !important;
+        transition: 0.2s ease;
+        text-transform: capitalize;
+    }
+
+    .fc .fc-button:hover {
+        background: #fff5f9 !important;
+        color: #e60073 !important;
+        border-color: #ffb6d2 !important;
+    }
+
+    .fc .fc-button.fc-button-active,
+    .fc .fc-button:active {
+        background: #ff4d94 !important;
+        color: white !important;
+        border-color: #ff4d94 !important;
+    }
+
+    .fc-theme-standard .fc-scrollgrid,
+    .fc-theme-standard td,
+    .fc-theme-standard th {
+        border-color: #f3e3ea !important;
+    }
+
+    .fc .fc-col-header-cell {
+        background: #fff8fb;
+        padding: 10px 0;
+    }
+
+    .fc .fc-col-header-cell-cushion {
+        color: #555;
+        font-weight: 600;
+        text-decoration: none;
+        font-size: 0.92rem;
+    }
+
+    .fc .fc-daygrid-day-number,
+    .fc .fc-timegrid-slot-label-cushion,
+    .fc .fc-timegrid-axis-cushion {
+        color: #666;
+        text-decoration: none;
+        font-weight: 500;
+    }
+
+    .fc .fc-daygrid-day.fc-day-today,
+    .fc .fc-timegrid-col.fc-day-today {
+        background: #fff6fa !important;
+    }
+
+    .fc .fc-event {
+        border: none !important;
+        border-radius: 12px !important;
+        padding: 3px 6px !important;
+        font-size: 0.82rem;
+        font-weight: 600;
+        box-shadow: 0 6px 14px rgba(255, 77, 148, 0.14);
+        background: linear-gradient(135deg, #ff4d94, #e60073) !important;
+    }
+
+    .fc .fc-event-title,
+    .fc .fc-event-time {
+        color: white !important;
+    }
+
+    .fc .fc-more-link {
+        color: #e60073;
+        font-weight: 600;
+        text-decoration: none;
+    }
+
+    .fc .fc-list-event:hover td,
+    .fc .fc-daygrid-event:hover {
+        opacity: 0.92;
+    }
+
+    .fc .fc-timegrid-slot {
+        height: 3rem;
+    }
+
     @media (max-width: 992px) {
         .stats-grid {
             grid-template-columns: repeat(2, 1fr);
@@ -272,6 +378,15 @@
             padding: 20px 16px;
             border-radius: 20px;
         }
+
+        .fc .fc-toolbar-title {
+            font-size: 1.05rem;
+        }
+
+        .fc .fc-button {
+            padding: 0.42rem 0.7rem !important;
+            font-size: 0.86rem !important;
+        }
     }
 
     @media (max-width: 480px) {
@@ -281,6 +396,10 @@
 
         .dashboard-title {
             font-size: 1.75rem;
+        }
+
+        #calendar {
+            padding: 6px;
         }
     }
 </style>
@@ -434,6 +553,7 @@
 
 <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
+
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         const calendarEl = document.getElementById('calendar');
@@ -446,6 +566,8 @@
             locale: 'es',
             height: 'auto',
             firstDay: 1,
+            dayMaxEvents: 2,
+            moreLinkText: 'más',
             headerToolbar: {
                 left: 'prev,next today',
                 center: 'title',

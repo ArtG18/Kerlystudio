@@ -151,10 +151,17 @@
 <div class="hero mb-5">
     <div class="hero-content">
         <h1>Kerly Studio</h1>
-        <p>Agenda tu cita y gestiona tu negocio de forma profesional</p>
-        <a href="{{ url_for('login') }}" class="btn btn-main mt-4">
-            Iniciar Sesión
-        </a>
+        <p>Agenda tu cita de forma rápida y sin complicaciones</p>
+
+        {% if logged_user and logged_user.rol == 'admin' %}
+            <a href="{{ url_for('admin_dashboard') }}" class="btn btn-main mt-4">
+                Ir al Panel
+            </a>
+        {% else %}
+            <a href="{{ url_for('reservar') }}" class="btn btn-main mt-4">
+                Reservar Ahora
+            </a>
+        {% endif %}
     </div>
 </div>
 
