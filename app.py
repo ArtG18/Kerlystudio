@@ -171,7 +171,7 @@ def init_db():
             cur.execute(
                 """
                 ALTER TABLE servicios
-                ADD COLUMN IF NOT EXISTS categoria VARCHAR(50) NOT NULL DEFAULT '💅 Manicure';
+                ADD COLUMN IF NOT EXISTS categoria VARCHAR(50) NOT NULL DEFAULT 'Manicure';
                 """
             )
 
@@ -262,10 +262,10 @@ def seed_initial_data():
     has_services = fetch_one("SELECT id FROM servicios LIMIT 1")
     if not has_services:
         default_services = [
-            ("Manicure Permanente", "Esmaltado permanente con preparación básica.", 90, 15000, "💅 Manicure"),
-            ("Kapping", "Refuerzo sobre uña natural.", 120, 20000, "💪 Kapping"),
-            ("Extensión de Uñas", "Set completo de extensión.", 180, 30000, "✨ Extensiones"),
-            ("Pedicure Spa", "Pedicure con exfoliación e hidratación.", 90, 18000, "🦶 Pedicure"),
+            ("Manicure Permanente", "Esmaltado permanente con preparación básica.", 90, 15000, "Manicure"),
+            ("Kapping", "Refuerzo sobre uña natural.", 120, 20000, "Kapping"),
+            ("Extensión de Uñas", "Set completo de extensión.", 180, 30000, "Extensiones"),
+            ("Pedicure Spa", "Pedicure con exfoliación e hidratación.", 90, 18000, "Pedicure"),
         ]
         for service in default_services:
             execute_query(
@@ -398,7 +398,7 @@ def agrupar_servicios_por_categoria(servicios_lista):
     servicios_agrupados = defaultdict(list)
 
     for s in servicios_lista:
-        categoria = s.get("categoria") or "🧴 Otros"
+        categoria = s.get("categoria") or "Otros"
         servicios_agrupados[categoria].append(s)
 
     return dict(servicios_agrupados)
@@ -542,6 +542,7 @@ def logout():
 
 @app.route("/reservar", methods=["GET", "POST"])
 def reservar():
+
     servicios_lista = fetch_all(
         """
         SELECT id, nombre, duracion_min, precio, categoria
@@ -550,6 +551,7 @@ def reservar():
         ORDER BY categoria ASC, nombre ASC
         """
     )
+
     servicios_agrupados = agrupar_servicios_por_categoria(servicios_lista)
 
     manicuristas = fetch_all(
@@ -561,7 +563,15 @@ def reservar():
         """
     )
 
+    # 🔥 PRELLENADO
+    servicios_pre = request.args.get("servicios", "")
+    servicios_pre = servicios_pre.split(",") if servicios_pre else []
+
+    manicurista_pre = request.args.get("manicurista_id")
+    fecha_pre = request.args.get("fecha")
+
     if request.method == "POST":
+
         nombre = request.form.get("nombre", "").strip()
         email = request.form.get("email", "").strip().lower()
         telefono = request.form.get("telefono", "").strip()
@@ -578,6 +588,9 @@ def reservar():
                 "reservar.html",
                 servicios_agrupados=servicios_agrupados,
                 manicuristas=manicuristas,
+                servicios_pre=servicios_pre,
+                manicurista_pre=manicurista_pre,
+                fecha_pre=fecha_pre,
             )
 
         if not service_ids or not manicurista_id or not fecha_raw or not hora_inicio_raw:
@@ -586,6 +599,9 @@ def reservar():
                 "reservar.html",
                 servicios_agrupados=servicios_agrupados,
                 manicuristas=manicuristas,
+                servicios_pre=servicios_pre,
+                manicurista_pre=manicurista_pre,
+                fecha_pre=fecha_pre,
             )
 
         try:
@@ -593,11 +609,14 @@ def reservar():
             fecha = datetime.strptime(fecha_raw, "%Y-%m-%d").date()
             hora_inicio = parse_time(hora_inicio_raw)
         except ValueError:
-            flash("Datos de fecha u hora inválidos.", "danger")
+            flash("Datos inválidos.", "danger")
             return render_template(
                 "reservar.html",
                 servicios_agrupados=servicios_agrupados,
                 manicuristas=manicuristas,
+                servicios_pre=servicios_pre,
+                manicurista_pre=manicurista_pre,
+                fecha_pre=fecha_pre,
             )
 
         if not validate_future_date(fecha):
@@ -606,45 +625,63 @@ def reservar():
                 "reservar.html",
                 servicios_agrupados=servicios_agrupados,
                 manicuristas=manicuristas,
+                servicios_pre=servicios_pre,
+                manicurista_pre=manicurista_pre,
+                fecha_pre=fecha_pre,
             )
 
         selected_services = get_selected_services(service_ids)
+
         if len(selected_services) != len(service_ids):
-            flash("Uno o más servicios no son válidos.", "danger")
+            flash("Servicios inválidos.", "danger")
             return render_template(
                 "reservar.html",
                 servicios_agrupados=servicios_agrupados,
                 manicuristas=manicuristas,
+                servicios_pre=servicios_pre,
+                manicurista_pre=manicurista_pre,
+                fecha_pre=fecha_pre,
             )
 
         total_duration = calculate_total_duration(selected_services)
+
         hora_fin_dt = combine_date_time(fecha, hora_inicio) + timedelta(minutes=total_duration)
         hora_fin = hora_fin_dt.time()
 
         weekday = fecha.weekday()
         schedule = get_manicurista_schedule(manicurista_id, weekday)
+
         if not schedule:
-            flash("La manicurista no atiende ese día.", "danger")
+            flash("No atiende ese día.", "danger")
             return render_template(
                 "reservar.html",
                 servicios_agrupados=servicios_agrupados,
                 manicuristas=manicuristas,
+                servicios_pre=servicios_pre,
+                manicurista_pre=manicurista_pre,
+                fecha_pre=fecha_pre,
             )
 
         if hora_inicio < schedule["hora_inicio"] or hora_fin > schedule["hora_fin"]:
-            flash("El horario seleccionado queda fuera de la jornada disponible.", "danger")
+            flash("Horario fuera de jornada.", "danger")
             return render_template(
                 "reservar.html",
                 servicios_agrupados=servicios_agrupados,
                 manicuristas=manicuristas,
+                servicios_pre=servicios_pre,
+                manicurista_pre=manicurista_pre,
+                fecha_pre=fecha_pre,
             )
 
         if not is_slot_available(manicurista_id, fecha, hora_inicio, hora_fin):
-            flash("Ese horario ya no está disponible.", "warning")
+            flash("Horario no disponible.", "warning")
             return render_template(
                 "reservar.html",
                 servicios_agrupados=servicios_agrupados,
                 manicuristas=manicuristas,
+                servicios_pre=servicios_pre,
+                manicurista_pre=manicurista_pre,
+                fecha_pre=fecha_pre,
             )
 
         cliente = fetch_one(
@@ -671,10 +708,8 @@ def reservar():
             execute_query(
                 """
                 UPDATE usuarios
-                SET nombre = %s,
-                    telefono = %s,
-                    activo = TRUE
-                WHERE id = %s
+                SET nombre=%s, telefono=%s, activo=TRUE
+                WHERE id=%s
                 """,
                 (nombre, telefono, cliente["id"]),
             )
@@ -695,13 +730,16 @@ def reservar():
                 (cita["id"], service["id"]),
             )
 
-        flash("Tu solicitud de cita fue enviada y quedó pendiente de confirmación.", "success")
-        return redirect(url_for("reservar"))
+        flash("✨ Tu cita fue agendada con éxito", "success")
+        return redirect(url_for("mis_citas"))
 
     return render_template(
         "reservar.html",
         servicios_agrupados=servicios_agrupados,
         manicuristas=manicuristas,
+        servicios_pre=servicios_pre,
+        manicurista_pre=manicurista_pre,
+        fecha_pre=fecha_pre,
     )
 
 
@@ -733,6 +771,71 @@ def mis_citas():
         (session["user_id"],),
     )
     return render_template("mis_citas.html", citas=citas)
+
+
+@app.route("/cancelar-cita/<int:cita_id>", methods=["POST"])
+@login_required
+def cancelar_cita_cliente(cita_id):
+
+    if session.get("rol") != "cliente":
+        return redirect(url_for("admin_dashboard"))
+
+    cita = fetch_one(
+        "SELECT id, cliente_id, estado FROM citas WHERE id = %s",
+        (cita_id,),
+    )
+
+    if not cita:
+        flash("Cita no encontrada.", "danger")
+        return redirect(url_for("mis_citas"))
+
+    if cita["cliente_id"] != session.get("user_id"):
+        flash("No tienes permiso.", "danger")
+        return redirect(url_for("mis_citas"))
+
+    if cita["estado"] not in ["pendiente", "confirmada"]:
+        flash("No se puede cancelar.", "warning")
+        return redirect(url_for("mis_citas"))
+
+    execute_query(
+        "UPDATE citas SET estado = 'cancelada_cliente' WHERE id = %s",
+        (cita_id,),
+    )
+
+    flash("Cita cancelada correctamente.", "success")
+    return redirect(url_for("mis_citas"))
+
+
+@app.route("/reagendar/<int:cita_id>")
+@login_required
+def reagendar_cita(cita_id):
+
+    cita = fetch_one(
+        "SELECT * FROM citas WHERE id = %s",
+        (cita_id,),
+    )
+
+    if not cita:
+        return redirect(url_for("mis_citas"))
+
+    if cita["cliente_id"] != session.get("user_id"):
+        return redirect(url_for("mis_citas"))
+
+    servicios = fetch_all(
+        "SELECT servicio_id FROM cita_servicios WHERE cita_id = %s",
+        (cita_id,),
+    )
+
+    servicios_ids = [str(s["servicio_id"]) for s in servicios]
+
+    return redirect(
+        url_for(
+            "reservar",
+            servicios=",".join(servicios_ids),
+            manicurista_id=cita["manicurista_id"],
+            fecha=cita["fecha"].strftime("%Y-%m-%d"),
+        )
+    )
 
 
 @app.route("/api/disponibilidad")
@@ -944,11 +1047,11 @@ def marcar_no_asistio(cita_id):
 @admin_required
 def admin_servicios():
     categorias_servicio = [
-        "💅 Manicure",
-        "🦶 Pedicure",
-        "✨ Extensiones",
-        "💪 Kapping",
-        "🧴 Otros",
+        "Manicure",
+        "Pedicure",
+        "Extensiones",
+        "Kapping",
+        "Otros",
     ]
 
     if request.method == "POST":
