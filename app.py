@@ -568,8 +568,8 @@ def reservar():
 
     # 🔥 BLOQUEAR ADMIN
     if current_user() and current_user().get("rol") == "admin":
-    flash("Acceso no permitido para administradores.", "warning")
-    return redirect(url_for("home"))
+    	flash("Acceso no permitido para administradores.", "warning")
+    	return redirect(url_for("home"))
 
     servicios_lista = fetch_all(
         """
