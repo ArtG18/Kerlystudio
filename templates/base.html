@@ -19,7 +19,7 @@
   <style>
     body {
       font-family: 'Poppins', sans-serif;
-      background: #fdf7fa;
+      background: linear-gradient(135deg, #fdf7fa, #fce4ec);
       margin: 0;
       padding: 0;
       animation: fadeIn 0.4s ease;
@@ -33,8 +33,20 @@
     /* 📱 CONTENEDOR APP */
     .main-container {
       max-width: 480px;
-      margin: 0 auto;
-      padding: 12px 10px 30px;
+      margin: 20px auto;
+      padding: 15px;
+      background: white;
+      border-radius: 25px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+      min-height: 85vh;
+    }
+
+    /* 💻 MODO PC */
+    @media (min-width: 992px) {
+      .main-container {
+        max-width: 900px;
+        padding: 25px;
+      }
     }
 
     /* NAVBAR */
@@ -132,7 +144,7 @@
       color: white;
     }
 
-    /* LOADER GLOBAL */
+    /* LOADER */
     .loading-overlay {
       position: fixed;
       top: 0;
@@ -210,8 +222,8 @@
   {% block content %}{% endblock %}
 </div>
 
-<!-- 🔥 WHATSAPP (LISTO PARA HACER DINÁMICO DESPUÉS) -->
-<a href="https://wa.me/56959257968" class="whatsapp-float" target="_blank">
+<!-- WHATSAPP -->
+<a href="https://wa.me/{{ get_config('whatsapp_numero') }}" class="whatsapp-float" target="_blank">
   <i class="fa-brands fa-whatsapp"></i>
 </a>
 

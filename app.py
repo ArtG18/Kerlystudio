@@ -860,6 +860,30 @@ def api_disponibilidad():
     slots = generate_available_slots(manicurista_id, fecha, total_duration)
     return jsonify({"slots": slots})
 
+@app.route("/horarios")
+def obtener_horarios():
+
+    manicurista_id = request.args.get("manicurista_id", type=int)
+    fecha_raw = request.args.get("fecha", "")
+    service_ids = request.args.getlist("servicios", type=int)
+
+    if not manicurista_id or not fecha_raw or not service_ids:
+        return jsonify({"slots": []})
+
+    try:
+        fecha = datetime.strptime(fecha_raw, "%Y-%m-%d").date()
+    except ValueError:
+        return jsonify({"slots": []})
+
+    selected_services = get_selected_services(service_ids)
+    if not selected_services:
+        return jsonify({"slots": []})
+
+    total_duration = calculate_total_duration(selected_services)
+
+    slots = generate_available_slots(manicurista_id, fecha, total_duration)
+
+    return jsonify({"slots": slots})
 
 # =========================
 # ADMIN ROUTES
