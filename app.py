@@ -56,6 +56,14 @@ def fetch_all(query, params=None):
         conn.close()
 
 
+def get_config(clave):
+    result = fetch_one(
+        "SELECT valor FROM configuracion WHERE clave = %s",
+        (clave,)
+    )
+    return result["valor"] if result else ""
+
+
 def execute_query(query, params=None, fetchone=False, fetchall=False):
     conn = get_conn()
     try:
@@ -118,6 +126,7 @@ def inject_user():
     return {
         "logged_user": current_user(),
         "today_date": date.today().strftime("%Y-%m-%d"),
+        "get_config": get_config
     }
 
 
