@@ -566,6 +566,11 @@ def logout():
 @app.route("/reservar", methods=["GET", "POST"])
 def reservar():
 
+    # 🔥 BLOQUEAR ADMIN
+    if current_user() and current_user().get("rol") == "admin":
+    flash("Acceso no permitido para administradores.", "warning")
+    return redirect(url_for("home"))
+
     servicios_lista = fetch_all(
         """
         SELECT id, nombre, duracion_min, precio, categoria
@@ -1093,12 +1098,14 @@ def marcar_no_asistio(cita_id):
 @app.route("/admin/servicios", methods=["GET", "POST"])
 @admin_required
 def admin_servicios():
-    categorias_servicio = [
-        "Manicure",
-        "Pedicure",
-        "Extensiones",
-        "Kapping",
-        "Otros",
+   categorias_servicio = [
+    "Manicure",
+    "Pedicure",
+    "Extensión",
+    "Kapping",
+    "Pestañas",
+    "Cejas",
+    "Depilación"
     ]
 
     if request.method == "POST":

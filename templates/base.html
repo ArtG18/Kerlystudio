@@ -210,6 +210,8 @@
           <li class="nav-item">
             <a class="nav-link" href="{{ url_for('login') }}">Entrar</a>
           </li>
+        {% if not logged_user or logged_user.rol != 'admin' %}
+          <a class="nav-link" href="{{ url_for('reservar') }}">Reservar</a>
         {% endif %}
 
       </ul>
@@ -223,9 +225,11 @@
 </div>
 
 <!-- WHATSAPP -->
+{% if not logged_user or logged_user.rol != 'admin' %}
 <a href="https://wa.me/{{ get_config('whatsapp_numero') }}" class="whatsapp-float" target="_blank">
-  <i class="fa-brands fa-whatsapp"></i>
+    <i class="fa-brands fa-whatsapp"></i>
 </a>
+{% endif %}
 
 <!-- LOADER -->
 <div class="loading-overlay" id="loading">
