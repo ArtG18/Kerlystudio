@@ -223,6 +223,20 @@ def init_db():
                 """
             )
 
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS configuracion (
+                    id SERIAL PRIMARY KEY,
+                    clave TEXT UNIQUE,
+                    valor TEXT
+                );
+                """)
+
+            cur.execute("""
+                INSERT INTO configuracion (clave, valor)
+                VALUES ('whatsapp_numero', '56959257968')
+                ON CONFLICT (clave) DO NOTHING;
+             """)
+
             conn.commit()
     finally:
         conn.close()
