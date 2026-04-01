@@ -18,7 +18,6 @@
     box-shadow: 0 10px 25px rgba(0,0,0,0.05);
 }
 
-/* INPUTS */
 .form-control, .form-select {
     border-radius: 12px;
     padding: 12px;
@@ -26,7 +25,6 @@
     margin-bottom: 12px;
 }
 
-/* HORAS */
 .horas-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -49,7 +47,6 @@
 .hora-btn.selected {
     background: #ff4d94;
     color: white;
-    border: none;
 }
 
 .hora-btn.disabled {
@@ -58,13 +55,11 @@
     cursor: not-allowed;
 }
 
-/* BOTÓN */
 .btn-main {
     width: 100%;
     margin-top: 15px;
 }
 
-/* LOADING */
 .loading {
     display: none;
     text-align: center;
@@ -81,7 +76,7 @@
 
 <div class="form-card">
 
-<form method="POST" onsubmit="activarLoader()">
+<form method="POST" id="formReserva">
 
 <input type="text" name="nombre" placeholder="Nombre" class="form-control" required>
 <input type="text" name="telefono" placeholder="Teléfono" class="form-control" required>
@@ -98,9 +93,7 @@
 <input type="date" name="fecha" id="fecha" class="form-control" required>
 
 <h6>Hora</h6>
-
 <input type="hidden" name="hora_inicio" id="hora_inicio">
-
 <div class="horas-grid" id="horasContainer"></div>
 
 <button type="submit" class="btn btn-main" id="btnReservar">
@@ -108,11 +101,43 @@ Confirmar reserva
 </button>
 
 <div class="loading" id="loadingText">
-Reservando tu cita...
+Enviando solicitud...
 </div>
 
 </form>
 
+</div>
+
+<!-- MODAL -->
+<div id="modalExito" style="
+display:none;
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:rgba(0,0,0,0.6);
+justify-content:center;
+align-items:center;
+z-index:9999;
+">
+
+<div style="
+background:white;
+padding:25px;
+border-radius:20px;
+text-align:center;
+max-width:300px;
+">
+
+<h4>✨ Solicitud enviada</h4>
+<p>Tu cita fue enviada.<br>La manicurista debe confirmarla.</p>
+
+<button onclick="cerrarModal()" class="btn btn-main">
+Aceptar
+</button>
+
+</div>
 </div>
 
 <script>
@@ -126,10 +151,27 @@ const horas = [
 const container = document.getElementById("horasContainer");
 const inputHora = document.getElementById("hora_inicio");
 
+// 🔥 BLOQUEAR FECHAS PASADAS
+const hoy = new Date().toISOString().split("T")[0];
+document.getElementById("fecha").setAttribute("min", hoy);
+
+// 🔥 RENDER HORAS PRO
 function renderHoras(ocupadas=[]) {
+
     container.innerHTML = "";
 
+    const fechaSeleccionada = document.getElementById("fecha").value;
+    const ahora = new Date();
+
     horas.forEach(h => {
+
+        let horaDate = new Date(`${fechaSeleccionada}T${h}`);
+
+        // ❌ ocultar horas pasadas hoy
+        if (fechaSeleccionada === hoy && horaDate < ahora) {
+            return;
+        }
+
         let div = document.createElement("div");
         div.className = "hora-btn";
         div.innerText = h;
@@ -148,7 +190,7 @@ function renderHoras(ocupadas=[]) {
     });
 }
 
-// 🔥 CARGAR HORAS DINÁMICAS
+// 🔥 FETCH HORAS
 async function cargarHoras() {
 
     let fecha = document.getElementById("fecha").value;
@@ -161,7 +203,7 @@ async function cargarHoras() {
         let data = await res.json();
 
         renderHoras(data.ocupadas);
-    } catch (e) {
+    } catch {
         renderHoras();
     }
 }
@@ -170,13 +212,28 @@ async function cargarHoras() {
 document.getElementById("fecha").addEventListener("change", cargarHoras);
 document.querySelector("[name='manicurista_id']").addEventListener("change", cargarHoras);
 
-// inicial
+// INICIAL
 renderHoras();
 
-// LOADING
-function activarLoader() {
-    document.getElementById("btnReservar").innerText = "Reservando...";
+// 🔥 VALIDACIÓN + MODAL
+document.getElementById("formReserva").addEventListener("submit", function(e) {
+
+    if (!inputHora.value) {
+        e.preventDefault();
+        alert("Selecciona una hora");
+        return;
+    }
+
+    document.getElementById("btnReservar").innerText = "Enviando...";
     document.getElementById("loadingText").style.display = "block";
+
+    setTimeout(() => {
+        document.getElementById("modalExito").style.display = "flex";
+    }, 800);
+});
+
+function cerrarModal() {
+    window.location.href = "/";
 }
 </script>
 

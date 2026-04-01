@@ -756,7 +756,7 @@ def horas_disponibles():
         FROM citas
         WHERE manicurista_id = %s
         AND fecha = %s
-        AND estado != 'cancelada'
+        AND estado NOT IN ('cancelada_admin', 'completada')
     """, (manicurista_id, fecha))
 
     ocupadas = []
@@ -797,22 +797,42 @@ def obtener_horarios():
 # =========================
 # ADMIN ROUTES
 # =========================
+# =========================
+# DASHBOARD
+# =========================
 @app.route("/admin")
 @admin_required
 def admin_dashboard():
-    stats = fetch_one(
-        """
+
+    stats = fetch_one("""
         SELECT
             COUNT(*) AS total_citas,
             COUNT(*) FILTER (WHERE estado = 'pendiente') AS pendientes,
             COUNT(*) FILTER (WHERE estado = 'confirmada') AS confirmadas,
             COUNT(*) FILTER (WHERE fecha = CURRENT_DATE) AS hoy
         FROM citas
-        """
-    )
+    """)
 
-    proximas_citas = fetch_all(
-        """
+    ingresos_hoy = fetch_one("""
+        SELECT COALESCE(SUM(s.precio),0) as total
+        FROM citas c
+        JOIN cita_servicios cs ON cs.cita_id = c.id
+        JOIN servicios s ON s.id = cs.servicio_id
+        WHERE c.estado = 'completada'
+        AND c.fecha = CURRENT_DATE
+    """)
+
+    return render_template("dashboard.html", stats=stats, ingresos_hoy=ingresos_hoy)
+
+
+# =========================
+# LISTADO DE CITAS
+# =========================
+@app.route("/admin/citas")
+@admin_required
+def admin_citas():
+
+    citas = fetch_all("""
         SELECT
             c.id,
             c.fecha,
@@ -822,523 +842,110 @@ def admin_dashboard():
             u.nombre AS cliente_nombre,
             u.telefono,
             m.nombre AS manicurista_nombre,
-            STRING_AGG(s.nombre, ', ' ORDER BY s.nombre) AS servicios
+            STRING_AGG(s.nombre, ', ') AS servicios
         FROM citas c
         JOIN usuarios u ON u.id = c.cliente_id
         JOIN manicuristas m ON m.id = c.manicurista_id
         LEFT JOIN cita_servicios cs ON cs.cita_id = c.id
         LEFT JOIN servicios s ON s.id = cs.servicio_id
         GROUP BY c.id, u.nombre, u.telefono, m.nombre
-        ORDER BY c.fecha ASC, c.hora_inicio ASC
-        LIMIT 20
-        """
-    )
-
-    return render_template("dashboard.html", stats=stats, citas=proximas_citas)
-
-
-@app.route("/admin/citas")
-@admin_required
-def admin_citas():
-    q = request.args.get("q", "").strip()
-    estado = request.args.get("estado", "").strip().lower()
-    manicurista_id = request.args.get("manicurista_id", type=int)
-    fecha = request.args.get("fecha", "").strip()
-
-    filters = []
-    params = []
-
-    if q:
-        filters.append("(u.nombre ILIKE %s OR u.email ILIKE %s OR COALESCE(u.telefono, '') ILIKE %s)")
-        params.extend([f"%{q}%", f"%{q}%", f"%{q}%"])
-
-    if estado:
-        filters.append("c.estado = %s")
-        params.append(estado)
-
-    if manicurista_id:
-        filters.append("c.manicurista_id = %s")
-        params.append(manicurista_id)
-
-    if fecha:
-        filters.append("c.fecha = %s")
-        params.append(fecha)
-
-    where_clause = f"WHERE {' AND '.join(filters)}" if filters else ""
-
-    citas = fetch_all(
-        f"""
-        SELECT
-            c.id,
-            c.fecha,
-            c.hora_inicio,
-            c.hora_fin,
-            c.estado,
-            c.notas,
-            u.nombre AS cliente_nombre,
-            u.email AS cliente_email,
-            u.telefono,
-            m.nombre AS manicurista_nombre,
-            STRING_AGG(s.nombre, ', ' ORDER BY s.nombre) AS servicios
-        FROM citas c
-        JOIN usuarios u ON u.id = c.cliente_id
-        JOIN manicuristas m ON m.id = c.manicurista_id
-        LEFT JOIN cita_servicios cs ON cs.cita_id = c.id
-        LEFT JOIN servicios s ON s.id = cs.servicio_id
-        {where_clause}
-        GROUP BY c.id, u.nombre, u.email, u.telefono, m.nombre
         ORDER BY c.fecha DESC, c.hora_inicio DESC
-        """,
-        tuple(params),
+    """)
+
+    ingresos_hoy = fetch_one("""
+        SELECT COALESCE(SUM(s.precio),0) as total
+        FROM citas c
+        JOIN cita_servicios cs ON cs.cita_id = c.id
+        JOIN servicios s ON s.id = cs.servicio_id
+        WHERE c.estado = 'completada'
+        AND c.fecha = CURRENT_DATE
+    """)
+
+    return render_template(
+        "admin_citas.html",
+        citas=citas,
+        ingresos_hoy=ingresos_hoy
     )
 
-    manicuristas = fetch_all(
-        "SELECT id, nombre FROM manicuristas WHERE activo = TRUE ORDER BY nombre"
-    )
-    return render_template("admin_citas.html", citas=citas, manicuristas=manicuristas)
 
-
+# =========================
+# CONFIRMAR
+# =========================
 @app.route("/admin/citas/<int:cita_id>/confirmar", methods=["POST"])
 @admin_required
 def confirmar_cita(cita_id):
-    cita = fetch_one(
-        "SELECT id, manicurista_id, fecha, hora_inicio, hora_fin, estado FROM citas WHERE id = %s",
-        (cita_id,),
-    )
-    if not cita:
-        flash("Cita no encontrada.", "danger")
-        return redirect(url_for("admin_citas"))
 
-    conflicting = fetch_one(
-        """
-        SELECT id
-        FROM citas
-        WHERE manicurista_id = %s
-          AND fecha = %s
-          AND estado = 'confirmada'
-          AND id <> %s
-          AND (%s < hora_fin AND hora_inicio < %s)
-        LIMIT 1
-        """,
-        (
-            cita["manicurista_id"],
-            cita["fecha"],
-            cita_id,
-            cita["hora_inicio"],
-            cita["hora_fin"],
-        ),
+    execute_query(
+        "UPDATE citas SET estado = 'confirmada' WHERE id = %s",
+        (cita_id,)
     )
 
-    if conflicting:
-        flash("No se puede confirmar: hay conflicto con otra cita confirmada.", "danger")
-        return redirect(url_for("admin_citas"))
-
-    execute_query("UPDATE citas SET estado = 'confirmada' WHERE id = %s", (cita_id,))
-    flash("Cita confirmada correctamente.", "success")
+    flash("Cita confirmada", "success")
     return redirect(url_for("admin_citas"))
 
 
+# =========================
+# RECHAZAR
+# =========================
 @app.route("/admin/citas/<int:cita_id>/rechazar", methods=["POST"])
 @admin_required
 def rechazar_cita(cita_id):
-    execute_query("UPDATE citas SET estado = 'rechazada' WHERE id = %s", (cita_id,))
-    flash("Cita rechazada.", "info")
+
+    execute_query(
+        "UPDATE citas SET estado = 'rechazada' WHERE id = %s",
+        (cita_id,)
+    )
+
+    flash("Cita rechazada", "info")
     return redirect(url_for("admin_citas"))
 
 
+# =========================
+# COMPLETAR (💸 CLAVE)
+# =========================
 @app.route("/admin/citas/<int:cita_id>/completar", methods=["POST"])
 @admin_required
 def completar_cita(cita_id):
-    execute_query("UPDATE citas SET estado = 'completada' WHERE id = %s", (cita_id,))
-    flash("Cita marcada como completada.", "success")
+
+    execute_query(
+        "UPDATE citas SET estado = 'completada' WHERE id = %s",
+        (cita_id,)
+    )
+
+    flash("Cita completada 💸", "success")
     return redirect(url_for("admin_citas"))
 
 
+# =========================
+# CANCELAR
+# =========================
 @app.route("/admin/citas/<int:cita_id>/cancelar", methods=["POST"])
 @admin_required
 def cancelar_cita_admin(cita_id):
+
     execute_query(
         "UPDATE citas SET estado = 'cancelada_admin' WHERE id = %s",
-        (cita_id,),
+        (cita_id,)
     )
-    flash("Cita cancelada por administración.", "info")
+
+    flash("Cita cancelada", "warning")
     return redirect(url_for("admin_citas"))
 
 
+# =========================
+# NO ASISTIÓ
+# =========================
 @app.route("/admin/citas/<int:cita_id>/no-asistio", methods=["POST"])
 @admin_required
 def marcar_no_asistio(cita_id):
+
     execute_query(
         "UPDATE citas SET estado = 'no_asistio' WHERE id = %s",
-        (cita_id,),
+        (cita_id,)
     )
-    flash("La cita fue marcada como no asistida.", "warning")
+
+    flash("Cliente no asistió", "warning")
     return redirect(url_for("admin_citas"))
-
-
-@app.route("/admin/servicios", methods=["GET", "POST"])
-@admin_required
-def admin_servicios():
-    categorias_servicio = [
-    "Manicure",
-    "Pedicure",
-    "Extensión",
-    "Kapping",
-    "Pestañas",
-    "Cejas",
-    "Depilación"
-    ]
-
-    if request.method == "POST":
-        nombre = request.form.get("nombre", "").strip()
-    descripcion = request.form.get("descripcion", "").strip()
-    duracion_min = request.form.get("duracion_min", type=int)
-    precio = request.form.get("precio", type=float)
-    categoria = request.form.get("categoria", "").strip()
-
-    if not nombre or duracion_min is None or precio is None or not categoria:
-        flash("Completa nombre, categoría, duración y precio.", "danger")
-        return redirect(url_for("admin_servicios"))
-
-    if duracion_min <= 0:
-        flash("La duración debe ser mayor que cero.", "danger")
-        return redirect(url_for("admin_servicios"))
-
-    if precio < 0:
-        flash("El precio no puede ser negativo.", "danger")
-        return redirect(url_for("admin_servicios"))
-
-    execute_query(
-        """
-        INSERT INTO servicios (nombre, descripcion, duracion_min, precio, categoria)
-        VALUES (%s, %s, %s, %s, %s)
-        """,
-        (nombre, descripcion, duracion_min, precio, categoria),
-    )
-    flash("Servicio agregado correctamente.", "success")
-    return redirect(url_for("admin_servicios"))
-
-    servicios = fetch_all(
-    "SELECT * FROM servicios ORDER BY activo DESC, categoria ASC, nombre ASC"
-    )
-    servicio_editar_id = request.args.get("editar", type=int)
-    servicio_editar = None
-
-    if servicio_editar_id:
-        servicio_editar = fetch_one(
-        "SELECT * FROM servicios WHERE id = %s",
-        (servicio_editar_id,),
-    )
-
-    return render_template(
-    "admin_servicios.html",
-    servicios=servicios,
-    servicio_editar=servicio_editar,
-    categorias_servicio=categorias_servicio,
-    )
-
-
-@app.route("/admin/servicios/<int:servicio_id>/editar", methods=["POST"])
-@admin_required
-def editar_servicio(servicio_id):
-    servicio = fetch_one("SELECT * FROM servicios WHERE id = %s", (servicio_id,))
-    if not servicio:
-        flash("Servicio no encontrado.", "danger")
-        return redirect(url_for("admin_servicios"))
-
-    nombre = request.form.get("nombre", "").strip()
-    descripcion = request.form.get("descripcion", "").strip()
-    duracion_min = request.form.get("duracion_min", type=int)
-    precio = request.form.get("precio", type=float)
-    categoria = request.form.get("categoria", "").strip()
-
-    if not nombre or duracion_min is None or precio is None or not categoria:
-        flash("Completa nombre, categoría, duración y precio.", "danger")
-        return redirect(url_for("admin_servicios", editar=servicio_id))
-
-    if duracion_min <= 0:
-        flash("La duración debe ser mayor que cero.", "danger")
-        return redirect(url_for("admin_servicios", editar=servicio_id))
-
-    if precio < 0:
-        flash("El precio no puede ser negativo.", "danger")
-        return redirect(url_for("admin_servicios", editar=servicio_id))
-
-    execute_query(
-        """
-        UPDATE servicios
-        SET nombre = %s,
-            descripcion = %s,
-            duracion_min = %s,
-            precio = %s,
-            categoria = %s
-        WHERE id = %s
-        """,
-        (nombre, descripcion, duracion_min, precio, categoria, servicio_id),
-    )
-
-    flash("Servicio actualizado correctamente.", "success")
-    return redirect(url_for("admin_servicios"))
-
-
-@app.route("/admin/servicios/<int:servicio_id>/toggle", methods=["POST"])
-@admin_required
-def toggle_servicio(servicio_id):
-    servicio = fetch_one(
-        "SELECT id, activo, nombre FROM servicios WHERE id = %s",
-        (servicio_id,),
-    )
-    if not servicio:
-        flash("Servicio no encontrado.", "danger")
-        return redirect(url_for("admin_servicios"))
-
-    nuevo_estado = not servicio["activo"]
-    execute_query(
-        "UPDATE servicios SET activo = %s WHERE id = %s",
-        (nuevo_estado, servicio_id),
-    )
-
-    if nuevo_estado:
-        flash(f"Servicio '{servicio['nombre']}' activado.", "success")
-    else:
-        flash(f"Servicio '{servicio['nombre']}' desactivado.", "info")
-
-    return redirect(url_for("admin_servicios"))
-
-
-@app.route("/admin/manicuristas", methods=["GET", "POST"])
-@admin_required
-def admin_manicuristas():
-    if request.method == "POST":
-        nombre = request.form.get("nombre", "").strip()
-        if not nombre:
-            flash("Debes indicar el nombre.", "danger")
-            return redirect(url_for("admin_manicuristas"))
-
-        execute_query("INSERT INTO manicuristas (nombre) VALUES (%s)", (nombre,))
-        flash("Manicurista agregada correctamente.", "success")
-        return redirect(url_for("admin_manicuristas"))
-
-    manicuristas = fetch_all(
-        "SELECT * FROM manicuristas ORDER BY activo DESC, nombre ASC"
-    )
-
-    manicurista_editar_id = request.args.get("editar", type=int)
-    manicurista_editar = None
-
-    if manicurista_editar_id:
-        manicurista_editar = fetch_one(
-            "SELECT * FROM manicuristas WHERE id = %s",
-            (manicurista_editar_id,),
-        )
-
-    return render_template(
-        "admin_manicuristas.html",
-        manicuristas=manicuristas,
-        manicurista_editar=manicurista_editar,
-    )
-
-
-@app.route("/admin/manicuristas/<int:manicurista_id>/editar", methods=["POST"])
-@admin_required
-def editar_manicurista(manicurista_id):
-    manicurista = fetch_one(
-        "SELECT * FROM manicuristas WHERE id = %s",
-        (manicurista_id,),
-    )
-    if not manicurista:
-        flash("Manicurista no encontrada.", "danger")
-        return redirect(url_for("admin_manicuristas"))
-
-    nombre = request.form.get("nombre", "").strip()
-    if not nombre:
-        flash("Debes indicar el nombre.", "danger")
-        return redirect(url_for("admin_manicuristas", editar=manicurista_id))
-
-    execute_query(
-        "UPDATE manicuristas SET nombre = %s WHERE id = %s",
-        (nombre, manicurista_id),
-    )
-
-    flash("Manicurista actualizada correctamente.", "success")
-    return redirect(url_for("admin_manicuristas"))
-
-
-@app.route("/admin/manicuristas/<int:manicurista_id>/toggle", methods=["POST"])
-@admin_required
-def toggle_manicurista(manicurista_id):
-    manicurista = fetch_one(
-        "SELECT id, nombre, activo FROM manicuristas WHERE id = %s",
-        (manicurista_id,),
-    )
-    if not manicurista:
-        flash("Manicurista no encontrada.", "danger")
-        return redirect(url_for("admin_manicuristas"))
-
-    nuevo_estado = not manicurista["activo"]
-    execute_query(
-        "UPDATE manicuristas SET activo = %s WHERE id = %s",
-        (nuevo_estado, manicurista_id),
-    )
-
-    if nuevo_estado:
-        flash(f"Manicurista '{manicurista['nombre']}' activada.", "success")
-    else:
-        flash(f"Manicurista '{manicurista['nombre']}' desactivada.", "info")
-
-    return redirect(url_for("admin_manicuristas"))
-
-
-@app.route("/admin/horarios")
-@admin_required
-def admin_horarios():
-    manicurista_id = request.args.get("manicurista_id", type=int)
-
-    manicuristas = fetch_all(
-        "SELECT id, nombre FROM manicuristas ORDER BY activo DESC, nombre ASC"
-    )
-
-    selected_manicurista = None
-    horarios = []
-
-    if manicurista_id:
-        selected_manicurista = fetch_one(
-            "SELECT id, nombre FROM manicuristas WHERE id = %s",
-            (manicurista_id,),
-        )
-
-        horarios = fetch_all(
-            """
-            SELECT id, manicurista_id, dia_semana, hora_inicio, hora_fin, activo
-            FROM horarios_manicurista
-            WHERE manicurista_id = %s
-            ORDER BY dia_semana ASC
-            """,
-            (manicurista_id,),
-        )
-
-    dias_semana = {
-        0: "Lunes",
-        1: "Martes",
-        2: "Miércoles",
-        3: "Jueves",
-        4: "Viernes",
-        5: "Sábado",
-        6: "Domingo",
-    }
-
-    return render_template(
-        "admin_horarios.html",
-        manicuristas=manicuristas,
-        manicurista_id=manicurista_id,
-        selected_manicurista=selected_manicurista,
-        horarios=horarios,
-        dias_semana=dias_semana,
-    )
-
-
-@app.route("/admin/horarios/<int:horario_id>/actualizar", methods=["POST"])
-@admin_required
-def actualizar_horario_manicurista(horario_id):
-    horario = fetch_one(
-        "SELECT * FROM horarios_manicurista WHERE id = %s",
-        (horario_id,),
-    )
-    if not horario:
-        flash("Horario no encontrado.", "danger")
-        return redirect(url_for("admin_horarios"))
-
-    hora_inicio = request.form.get("hora_inicio", "").strip()
-    hora_fin = request.form.get("hora_fin", "").strip()
-
-    if not hora_inicio or not hora_fin:
-        flash("Debes completar hora de inicio y fin.", "danger")
-        return redirect(url_for("admin_horarios", manicurista_id=horario["manicurista_id"]))
-
-    try:
-        inicio = parse_time(hora_inicio)
-        fin = parse_time(hora_fin)
-    except ValueError:
-        flash("Formato de hora inválido.", "danger")
-        return redirect(url_for("admin_horarios", manicurista_id=horario["manicurista_id"]))
-
-    if inicio >= fin:
-        flash("La hora de inicio debe ser menor a la hora de fin.", "danger")
-        return redirect(url_for("admin_horarios", manicurista_id=horario["manicurista_id"]))
-
-    execute_query(
-        """
-        UPDATE horarios_manicurista
-        SET hora_inicio = %s, hora_fin = %s
-        WHERE id = %s
-        """,
-        (inicio, fin, horario_id),
-    )
-
-    flash("Horario actualizado correctamente.", "success")
-    return redirect(url_for("admin_horarios", manicurista_id=horario["manicurista_id"]))
-
-
-@app.route("/admin/horarios/<int:horario_id>/toggle", methods=["POST"])
-@admin_required
-def toggle_horario_manicurista(horario_id):
-    horario = fetch_one(
-        "SELECT id, manicurista_id, activo FROM horarios_manicurista WHERE id = %s",
-        (horario_id,),
-    )
-    if not horario:
-        flash("Horario no encontrado.", "danger")
-        return redirect(url_for("admin_horarios"))
-
-    nuevo_estado = not horario["activo"]
-
-    execute_query(
-        "UPDATE horarios_manicurista SET activo = %s WHERE id = %s",
-        (nuevo_estado, horario_id),
-    )
-
-    if nuevo_estado:
-        flash("Día activado correctamente.", "success")
-    else:
-        flash("Día desactivado correctamente.", "info")
-
-    return redirect(url_for("admin_horarios", manicurista_id=horario["manicurista_id"]))
-
-
-@app.route("/admin/calendario")
-@admin_required
-def admin_calendar_events():
-    citas = fetch_all(
-        """
-        SELECT
-            c.id,
-            c.fecha,
-            c.hora_inicio,
-            c.hora_fin,
-            c.estado,
-            u.nombre AS cliente_nombre,
-            m.nombre AS manicurista_nombre
-        FROM citas c
-        JOIN usuarios u ON u.id = c.cliente_id
-        JOIN manicuristas m ON m.id = c.manicurista_id
-        ORDER BY c.fecha, c.hora_inicio
-        """
-    )
-
-    events = []
-    for cita in citas:
-        start_dt = datetime.combine(cita["fecha"], cita["hora_inicio"])
-        end_dt = datetime.combine(cita["fecha"], cita["hora_fin"])
-        events.append(
-            {
-                "id": cita["id"],
-                "title": f"{cita['cliente_nombre']} - {cita['manicurista_nombre']} ({cita['estado']})",
-                "start": start_dt.isoformat(),
-                "end": end_dt.isoformat(),
-            }
-        )
-
-    return jsonify(events)
 
 
 # =========================
