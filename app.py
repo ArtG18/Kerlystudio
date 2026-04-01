@@ -430,10 +430,10 @@ def reservar():
     servicios_agrupados = agrupar_servicios_por_categoria(servicios_lista)
 
     manicuristas = fetch_all("""
-        SELECT id, nombre
+        SELECT DISTINCT ON (nombre) id, nombre
         FROM manicuristas
         WHERE activo = TRUE
-        ORDER BY nombre
+        ORDER BY nombre, id ASC
     """)
 
     # 🔥 PRELLENADO
@@ -629,28 +629,25 @@ def mis_citas():
     if session.get("rol") != "cliente":
         return redirect(url_for("admin_dashboard"))
 
-    citas = fetch_all(
-        """
-        SELECT
-            c.id,
-            c.fecha,
-            c.hora_inicio,
-            c.hora_fin,
-            c.estado,
-            c.notas,
-            m.nombre AS manicurista_nombre,
-            STRING_AGG(s.nombre, ', ' ORDER BY s.nombre) AS servicios
-        FROM citas c
-        JOIN manicuristas m ON m.id = c.manicurista_id
-        LEFT JOIN cita_servicios cs ON cs.cita_id = c.id
-        LEFT JOIN servicios s ON s.id = cs.servicio_id
-        WHERE c.cliente_id = %s
-        GROUP BY c.id, m.nombre
-        ORDER BY c.fecha DESC, c.hora_inicio DESC
-        """,
-        (session["user_id"],),
-    )
-    return render_template("mis_citas.html", citas=citas)
+    citas = fetch_all("""
+    SELECT
+        c.id,
+        c.fecha,
+        c.hora_inicio,
+        c.hora_fin,
+        c.estado,
+        u.nombre AS cliente_nombre,
+        u.telefono,
+        m.nombre AS manicurista_nombre,
+        COALESCE(STRING_AGG(s.nombre, ', '), '') AS servicios
+    FROM citas c
+    JOIN usuarios u ON u.id = c.cliente_id
+    JOIN manicuristas m ON m.id = c.manicurista_id
+    LEFT JOIN cita_servicios cs ON cs.cita_id = c.id
+    LEFT JOIN servicios s ON s.id = cs.servicio_id
+    GROUP BY c.id, u.nombre, u.telefono, m.nombre
+    ORDER BY c.fecha DESC, c.hora_inicio DESC
+""")
 
 
 @app.route("/cancelar-cita/<int:cita_id>", methods=["POST"])
