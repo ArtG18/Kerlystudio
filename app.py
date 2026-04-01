@@ -55,6 +55,19 @@ def fetch_all(query, params=None):
     finally:
         conn.close()
 
+def agrupar_servicios_por_categoria(servicios):
+    agrupados = {}
+
+    for servicio in servicios:
+        categoria = servicio["categoria"]
+
+        if categoria not in agrupados:
+            agrupados[categoria] = []
+
+        agrupados[categoria].append(servicio)
+
+    return agrupados
+
 
 def get_config(clave):
     result = fetch_one(
