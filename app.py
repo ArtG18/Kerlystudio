@@ -982,6 +982,29 @@ def editar_servicio(servicio_id):
     flash("Servicio actualizado", "success")
     return redirect(url_for("admin_servicios"))
 
+@app.route("/admin/manicuristas", methods=["GET", "POST"])
+@admin_required
+def admin_manicuristas():
+
+    if request.method == "POST":
+        nombre = request.form.get("nombre")
+
+        if nombre:
+            execute_query("""
+                INSERT INTO manicuristas (nombre, activo)
+                VALUES (%s, TRUE)
+                ON CONFLICT DO NOTHING
+            """, (nombre,))
+
+    manicuristas = fetch_all("""
+        SELECT * FROM manicuristas ORDER BY nombre
+    """)
+
+    return render_template(
+        "admin_manicuristas.html",
+        manicuristas=manicuristas
+    )
+
 # =========================
 # APP STARTUP
 # =========================

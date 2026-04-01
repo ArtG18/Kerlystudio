@@ -74,7 +74,7 @@
     {% for servicio in servicios %}
     <div class="service-card" onclick="toggleServicio({{ servicio.id }}, this)">
 
-        <img src="{{ url_for('static', filename='servicios/' ~ (servicio.imagen or 'default.jpg')) }}">
+        <img src="{{ url_for('static', filename='servicios/' ~ (servicio.imagen if servicio.imagen else 'default.jpg')) }}">
 
         <div class="service-content">
             <div class="service-name">{{ servicio.nombre }}</div>
