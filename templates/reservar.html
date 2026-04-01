@@ -2,217 +2,182 @@
 {% block content %}
 
 <style>
-.booking-header {
+.reservar-header {
     text-align: center;
-    margin-bottom: 25px;
+    margin-bottom: 20px;
 }
 
-.booking-title {
+.reservar-header h2 {
     font-weight: 700;
 }
 
-.booking-subtitle {
-    color: #777;
-    font-size: 0.95rem;
-}
-
-.booking-card {
+.form-card {
     background: white;
     border-radius: 20px;
     padding: 20px;
     box-shadow: 0 10px 25px rgba(0,0,0,0.05);
 }
 
-input, select {
-    width: 100%;
-    margin-bottom: 12px;
+/* INPUTS */
+.form-control, .form-select {
+    border-radius: 12px;
     padding: 12px;
-    border-radius: 12px;
     border: 1px solid #eee;
+    margin-bottom: 12px;
 }
 
-/* SERVICIOS */
-.servicios-grid {
-    display: grid;
-    gap: 12px;
-}
-
-.servicio-card input { display:none; }
-
-.card-content {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 10px;
-    border-radius: 15px;
-    border: 2px solid transparent;
-    transition: 0.25s;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-}
-
-.card-content img {
-    width: 70px;
-    height: 70px;
-    border-radius: 12px;
-    object-fit: cover;
-}
-
-.servicio-card input:checked + .card-content {
-    border: 2px solid #ff4d94;
-    background: #fff0f6;
-}
-
-/* HORAS BOTONES 🔥 */
+/* HORAS */
 .horas-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 8px;
+    gap: 10px;
 }
 
 .hora-btn {
     padding: 10px;
-    border-radius: 12px;
-    border: none;
-    background: #f3f3f3;
+    border-radius: 10px;
+    border: 1px solid #eee;
+    text-align: center;
     cursor: pointer;
     transition: 0.2s;
 }
 
 .hora-btn:hover {
-    background: #ffe4ef;
+    background: #fff0f6;
 }
 
-.hora-btn.activa {
+.hora-btn.selected {
     background: #ff4d94;
     color: white;
+    border: none;
 }
 
 .hora-btn.disabled {
     background: #eee;
-    color: #aaa;
+    color: #999;
     cursor: not-allowed;
 }
 
 /* BOTÓN */
-.btn-reservar {
-    background: linear-gradient(135deg, #ff4d94, #e60073);
-    color: white;
-    border-radius: 30px;
-    padding: 14px;
+.btn-main {
     width: 100%;
-    font-weight: 600;
     margin-top: 15px;
+}
+
+/* LOADING */
+.loading {
+    display: none;
+    text-align: center;
+    margin-top: 10px;
+    font-size: 0.9rem;
+    color: #777;
 }
 </style>
 
-<div class="booking-header">
-    <h1 class="booking-title">Reserva tu cita</h1>
-    <p class="booking-subtitle">Rápido, fácil y profesional ✨</p>
+<div class="reservar-header">
+    <h2>Completa tu reserva ✨</h2>
+    <p class="text-muted">Solo un paso más 💅</p>
 </div>
 
-<div class="booking-card">
+<div class="form-card">
 
-<form method="POST" id="bookingForm">
+<form method="POST" onsubmit="activarLoader()">
 
-<input type="text" name="nombre" placeholder="Tu nombre">
-<input type="text" name="telefono" placeholder="Teléfono">
-<input type="email" name="email" placeholder="Correo">
-
-<h6>Servicios 💅</h6>
-
-<div class="servicios-grid">
-{% for categoria, lista in servicios_agrupados.items() %}
-<h6>{{ categoria }}</h6>
-
-{% for servicio in lista %}
-<label class="servicio-card">
-<input type="checkbox" name="servicios" value="{{ servicio.id }}">
-
-<div class="card-content">
-<img src="{{ url_for('static', filename='servicios/' ~ servicio.imagen) }}">
-<div>
-<h6>{{ servicio.nombre }}</h6>
-<p>${{ servicio.precio }}</p>
-</div>
-</div>
-
-</label>
-{% endfor %}
-{% endfor %}
-</div>
+<input type="text" name="nombre" placeholder="Nombre" class="form-control" required>
+<input type="text" name="telefono" placeholder="Teléfono" class="form-control" required>
+<input type="email" name="email" placeholder="Correo" class="form-control" required>
 
 <h6>Profesional</h6>
-<select name="manicurista_id" id="manicurista"></select>
+<select name="manicurista_id" class="form-select" required>
+{% for m in manicuristas %}
+<option value="{{ m.id }}">{{ m.nombre }}</option>
+{% endfor %}
+</select>
 
 <h6>Fecha</h6>
-<input type="date" name="fecha" id="fecha">
+<input type="date" name="fecha" id="fecha" class="form-control" required>
 
 <h6>Hora</h6>
+
 <input type="hidden" name="hora_inicio" id="hora_inicio">
 
 <div class="horas-grid" id="horasContainer"></div>
 
-<button class="btn-reservar">Reservar</button>
+<button type="submit" class="btn btn-main" id="btnReservar">
+Confirmar reserva
+</button>
+
+<div class="loading" id="loadingText">
+Reservando tu cita...
+</div>
 
 </form>
+
 </div>
 
 <script>
-// BLOQUEAR FECHAS PASADAS
-const today = new Date().toISOString().split("T")[0];
-document.getElementById("fecha").setAttribute("min", today);
+const horas = [
+"09:00","09:30","10:00","10:30",
+"11:00","11:30","12:00","12:30",
+"14:00","14:30","15:00","15:30",
+"16:00","16:30","17:00","17:30"
+];
 
-// CARGAR HORARIOS
-async function cargarHorarios() {
+const container = document.getElementById("horasContainer");
+const inputHora = document.getElementById("hora_inicio");
 
-    const manicurista = document.getElementById("manicurista").value;
-    const fecha = document.getElementById("fecha").value;
-
-    const servicios = [...document.querySelectorAll("input[name='servicios']:checked")]
-                        .map(e => e.value);
-
-    if (!manicurista || !fecha || servicios.length === 0) return;
-
-    const params = new URLSearchParams();
-    params.append("manicurista_id", manicurista);
-    params.append("fecha", fecha);
-    servicios.forEach(s => params.append("servicios", s));
-
-    const res = await fetch(`/horarios?${params}`);
-    const data = await res.json();
-
-    const container = document.getElementById("horasContainer");
+function renderHoras(ocupadas=[]) {
     container.innerHTML = "";
 
-    if (!data.slots.length) {
-        container.innerHTML = "<p>No hay horarios disponibles</p>";
-        return;
-    }
+    horas.forEach(h => {
+        let div = document.createElement("div");
+        div.className = "hora-btn";
+        div.innerText = h;
 
-    data.slots.forEach(slot => {
+        if (ocupadas.includes(h)) {
+            div.classList.add("disabled");
+        } else {
+            div.onclick = () => {
+                document.querySelectorAll(".hora-btn").forEach(b => b.classList.remove("selected"));
+                div.classList.add("selected");
+                inputHora.value = h;
+            };
+        }
 
-        const btn = document.createElement("button");
-        btn.type = "button";
-        btn.classList.add("hora-btn");
-
-        btn.innerText = slot.hora_inicio;
-
-        btn.onclick = () => {
-            document.querySelectorAll(".hora-btn").forEach(b => b.classList.remove("activa"));
-            btn.classList.add("activa");
-            document.getElementById("hora_inicio").value = slot.hora_inicio;
-        };
-
-        container.appendChild(btn);
+        container.appendChild(div);
     });
 }
 
+// 🔥 CARGAR HORAS DINÁMICAS
+async function cargarHoras() {
+
+    let fecha = document.getElementById("fecha").value;
+    let manicurista = document.querySelector("[name='manicurista_id']").value;
+
+    if (!fecha || !manicurista) return;
+
+    try {
+        let res = await fetch(`/horas-disponibles?fecha=${fecha}&manicurista_id=${manicurista}`);
+        let data = await res.json();
+
+        renderHoras(data.ocupadas);
+    } catch (e) {
+        renderHoras();
+    }
+}
+
 // EVENTOS
-document.getElementById("fecha").addEventListener("change", cargarHorarios);
-document.getElementById("manicurista").addEventListener("change", cargarHorarios);
-document.querySelectorAll("input[name='servicios']").forEach(e => {
-    e.addEventListener("change", cargarHorarios);
-});
+document.getElementById("fecha").addEventListener("change", cargarHoras);
+document.querySelector("[name='manicurista_id']").addEventListener("change", cargarHoras);
+
+// inicial
+renderHoras();
+
+// LOADING
+function activarLoader() {
+    document.getElementById("btnReservar").innerText = "Reservando...";
+    document.getElementById("loadingText").style.display = "block";
+}
 </script>
 
 {% endblock %}

@@ -174,9 +174,14 @@ def init_db():
         duracion_min INTEGER NOT NULL,
         precio INTEGER NOT NULL,
         categoria TEXT,
-        imagen TEXT,
         activo BOOLEAN DEFAULT TRUE
     );
+    """)
+
+    # 🔥 ASEGURAR COLUMNAS NUEVAS (NO ROMPE SI YA EXISTEN)
+    cur.execute("""
+    ALTER TABLE servicios
+    ADD COLUMN IF NOT EXISTS imagen TEXT;
     """)
 
     # =========================
@@ -219,7 +224,7 @@ def init_db():
     """)
 
     # =========================
-    # INSERTS INICIALES (SI NO EXISTEN)
+    # INSERTS BASE (SIN DUPLICAR)
     # =========================
 
     # WhatsApp
@@ -229,16 +234,17 @@ def init_db():
     ON CONFLICT (clave) DO NOTHING;
     """)
 
-    # Manicuristas base
+    # Manicuristas
     cur.execute("""
     INSERT INTO manicuristas (nombre, activo)
     VALUES 
     ('Kerly', TRUE),
-    ('Andrea', TRUE)
+    ('Andrea', TRUE),
+    ('Camila', TRUE)
     ON CONFLICT DO NOTHING;
     """)
 
-    # Servicios base
+    # Servicios
     cur.execute("""
     INSERT INTO servicios (nombre, duracion_min, precio, categoria, imagen)
     VALUES
@@ -255,114 +261,6 @@ def init_db():
     conn.commit()
     cur.close()
     conn.close()
-
-
-# =========================
-# UTILS
-# =========================
-def parse_time(value: str) -> time:
-    return datetime.strptime(value, "%H:%M").time()
-
-
-def combine_date_time(base_date: date, base_time: time) -> datetime:
-    return datetime.combine(base_date, base_time)
-
-
-def get_selected_services(service_ids):
-    if not service_ids:
-        return []
-    placeholders = ", ".join(["%s"] * len(service_ids))
-    return fetch_all(
-        f"""
-        SELECT id, nombre, duracion_min, precio, categoria
-        FROM servicios
-        WHERE activo = TRUE AND id IN ({placeholders})
-        """,
-        tuple(service_ids),
-    )
-
-
-def calculate_total_duration(service_rows):
-    return sum(service["duracion_min"] for service in service_rows)
-
-
-def get_manicurista_schedule(manicurista_id, weekday):
-    return fetch_one(
-        """
-        SELECT hora_inicio, hora_fin
-        FROM horarios_manicurista
-        WHERE manicurista_id = %s AND dia_semana = %s AND activo = TRUE
-        LIMIT 1
-        """,
-        (manicurista_id, weekday),
-    )
-
-
-def get_booked_ranges(manicurista_id, target_date):
-    return fetch_all(
-        """
-        SELECT hora_inicio, hora_fin
-        FROM citas
-        WHERE manicurista_id = %s
-          AND fecha = %s
-          AND estado IN ('pendiente', 'confirmada')
-        ORDER BY hora_inicio
-        """,
-        (manicurista_id, target_date),
-    )
-
-
-def overlaps(start_a, end_a, start_b, end_b):
-    return start_a < end_b and start_b < end_a
-
-
-def is_slot_available(manicurista_id, target_date, start_time, end_time):
-    booked_ranges = get_booked_ranges(manicurista_id, target_date)
-    for booked in booked_ranges:
-        if overlaps(start_time, end_time, booked["hora_inicio"], booked["hora_fin"]):
-            return False
-    return True
-
-
-def generate_available_slots(manicurista_id, target_date, duration_min, interval_min=30):
-    weekday = target_date.weekday()
-    schedule = get_manicurista_schedule(manicurista_id, weekday)
-    if not schedule:
-        return []
-
-    start_dt = combine_date_time(target_date, schedule["hora_inicio"])
-    end_dt = combine_date_time(target_date, schedule["hora_fin"])
-    duration = timedelta(minutes=duration_min)
-    step = timedelta(minutes=interval_min)
-
-    slots = []
-    cursor = start_dt
-    while cursor + duration <= end_dt:
-        slot_start = cursor.time()
-        slot_end = (cursor + duration).time()
-        if is_slot_available(manicurista_id, target_date, slot_start, slot_end):
-            slots.append(
-                {
-                    "hora_inicio": slot_start.strftime("%H:%M"),
-                    "hora_fin": slot_end.strftime("%H:%M"),
-                }
-            )
-        cursor += step
-    return slots
-
-
-def validate_future_date(target_date):
-    return target_date >= date.today()
-
-
-def agrupar_servicios_por_categoria(servicios_lista):
-    servicios_agrupados = defaultdict(list)
-
-    for s in servicios_lista:
-        categoria = s.get("categoria") or "Otros"
-        servicios_agrupados[categoria].append(s)
-
-    return dict(servicios_agrupados)
 
 
 # =========================
@@ -828,6 +726,35 @@ def api_disponibilidad():
     total_duration = calculate_total_duration(selected_services)
     slots = generate_available_slots(manicurista_id, fecha, total_duration)
     return jsonify({"slots": slots})
+
+@app.route("/horas-disponibles")
+def horas_disponibles():
+
+    manicurista_id = request.args.get("manicurista_id", type=int)
+    fecha = request.args.get("fecha")
+
+    if not manicurista_id or not fecha:
+        return {"ocupadas": []}
+
+    fecha = datetime.strptime(fecha, "%Y-%m-%d").date()
+
+    citas = fetch_all("""
+        SELECT hora_inicio, hora_fin
+        FROM citas
+        WHERE manicurista_id = %s
+        AND fecha = %s
+        AND estado != 'cancelada'
+    """, (manicurista_id, fecha))
+
+    ocupadas = []
+
+    for c in citas:
+        hora = c["hora_inicio"]
+        while hora < c["hora_fin"]:
+            ocupadas.append(hora.strftime("%H:%M"))
+            hora = (datetime.combine(fecha, hora) + timedelta(minutes=30)).time()
+
+    return {"ocupadas": ocupadas}
 
 @app.route("/horarios")
 def obtener_horarios():
