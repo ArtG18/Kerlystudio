@@ -566,208 +566,211 @@ def logout():
 @app.route("/reservar", methods=["GET", "POST"])
 def reservar():
 
-            # 🔥 BLOQUEAR ADMIN
-            if current_user() and current_user().get("rol") == "admin":
-                flash("Acceso no permitido para administradores.", "warning")
-                return redirect(url_for("home"))
+    # 🔥 BLOQUEAR ADMIN
+    if current_user() and current_user().get("rol") == "admin":
+        flash("Acceso no permitido para administradores.", "warning")
+        return redirect(url_for("home"))
 
-            servicios_lista = fetch_all(
-                """
-                SELECT id, nombre, duracion_min, precio, categoria
-                FROM servicios
-                WHERE activo = TRUE
-                ORDER BY categoria ASC, nombre ASC
-                """
+    servicios_lista = fetch_all("""
+        SELECT id, nombre, duracion_min, precio, categoria
+        FROM servicios
+        WHERE activo = TRUE
+        ORDER BY categoria ASC, nombre ASC
+    """)
+
+    servicios_agrupados = agrupar_servicios_por_categoria(servicios_lista)
+
+    manicuristas = fetch_all("""
+        SELECT id, nombre
+        FROM manicuristas
+        WHERE activo = TRUE
+        ORDER BY nombre
+    """)
+
+    # 🔥 PRELLENADO
+    servicios_pre = request.args.get("servicios", "")
+    servicios_pre = servicios_pre.split(",") if servicios_pre else []
+
+    manicurista_pre = request.args.get("manicurista_id")
+    fecha_pre = request.args.get("fecha")
+
+    # =========================
+    # POST
+    # =========================
+    if request.method == "POST":
+
+        nombre = request.form.get("nombre", "").strip()
+        email = request.form.get("email", "").strip().lower()
+        telefono = request.form.get("telefono", "").strip()
+
+        service_ids = request.form.getlist("servicios")
+        manicurista_id = request.form.get("manicurista_id", type=int)
+        fecha_raw = request.form.get("fecha", "")
+        hora_inicio_raw = request.form.get("hora_inicio", "")
+        notas = request.form.get("notas", "").strip()
+
+        # VALIDACIONES
+        if not nombre or not email or not telefono:
+            flash("Debes completar nombre, correo y teléfono.", "danger")
+            return render_template(
+                "reservar.html",
+                servicios_agrupados=servicios_agrupados,
+                manicuristas=manicuristas,
+                servicios_pre=servicios_pre,
+                manicurista_pre=manicurista_pre,
+                fecha_pre=fecha_pre,
             )
 
-            servicios_agrupados = agrupar_servicios_por_categoria(servicios_lista)
+        if not service_ids or not manicurista_id or not fecha_raw or not hora_inicio_raw:
+            flash("Debes completar servicio, manicurista, fecha y hora.", "danger")
+            return render_template(
+                "reservar.html",
+                servicios_agrupados=servicios_agrupados,
+                manicuristas=manicuristas,
+                servicios_pre=servicios_pre,
+                manicurista_pre=manicurista_pre,
+                fecha_pre=fecha_pre,
+            )
 
-            manicuristas = fetch_all(
-                """
-            SELECT id, nombre
-            FROM manicuristas
-            WHERE activo = TRUE
-            ORDER BY nombre
-            """
+        try:
+            service_ids = [int(sid) for sid in service_ids]
+            fecha = datetime.strptime(fecha_raw, "%Y-%m-%d").date()
+            hora_inicio = parse_time(hora_inicio_raw)
+        except ValueError:
+            flash("Datos inválidos.", "danger")
+            return render_template(
+                "reservar.html",
+                servicios_agrupados=servicios_agrupados,
+                manicuristas=manicuristas,
+                servicios_pre=servicios_pre,
+                manicurista_pre=manicurista_pre,
+                fecha_pre=fecha_pre,
+            )
+
+        if not validate_future_date(fecha):
+            flash("No puedes reservar en una fecha pasada.", "danger")
+            return render_template(
+                "reservar.html",
+                servicios_agrupados=servicios_agrupados,
+                manicuristas=manicuristas,
+                servicios_pre=servicios_pre,
+                manicurista_pre=manicurista_pre,
+                fecha_pre=fecha_pre,
+            )
+
+        selected_services = get_selected_services(service_ids)
+
+        if len(selected_services) != len(service_ids):
+            flash("Servicios inválidos.", "danger")
+            return render_template(
+                "reservar.html",
+                servicios_agrupados=servicios_agrupados,
+                manicuristas=manicuristas,
+                servicios_pre=servicios_pre,
+                manicurista_pre=manicurista_pre,
+                fecha_pre=fecha_pre,
+            )
+
+        total_duration = calculate_total_duration(selected_services)
+
+        hora_fin_dt = combine_date_time(fecha, hora_inicio) + timedelta(minutes=total_duration)
+        hora_fin = hora_fin_dt.time()
+
+        weekday = fecha.weekday()
+        schedule = get_manicurista_schedule(manicurista_id, weekday)
+
+        if not schedule:
+            flash("No atiende ese día.", "danger")
+            return render_template(
+                "reservar.html",
+                servicios_agrupados=servicios_agrupados,
+                manicuristas=manicuristas,
+                servicios_pre=servicios_pre,
+                manicurista_pre=manicurista_pre,
+                fecha_pre=fecha_pre,
+            )
+
+        if hora_inicio < schedule["hora_inicio"] or hora_fin > schedule["hora_fin"]:
+            flash("Horario fuera de jornada.", "danger")
+            return render_template(
+                "reservar.html",
+                servicios_agrupados=servicios_agrupados,
+                manicuristas=manicuristas,
+                servicios_pre=servicios_pre,
+                manicurista_pre=manicurista_pre,
+                fecha_pre=fecha_pre,
+            )
+
+        if not is_slot_available(manicurista_id, fecha, hora_inicio, hora_fin):
+            flash("Horario no disponible.", "warning")
+            return render_template(
+                "reservar.html",
+                servicios_agrupados=servicios_agrupados,
+                manicuristas=manicuristas,
+                servicios_pre=servicios_pre,
+                manicurista_pre=manicurista_pre,
+                fecha_pre=fecha_pre,
+            )
+
+        cliente = fetch_one(
+            "SELECT id FROM usuarios WHERE email = %s LIMIT 1",
+            (email,),
         )
 
-            # 🔥 PRELLENADO
-            servicios_pre = request.args.get("servicios", "")
-            servicios_pre = servicios_pre.split(",") if servicios_pre else []
-
-            manicurista_pre = request.args.get("manicurista_id")
-            fecha_pre = request.args.get("fecha")
-
-            if request.method == "POST":
-
-                nombre = request.form.get("nombre", "").strip()
-            email = request.form.get("email", "").strip().lower()
-            telefono = request.form.get("telefono", "").strip()
-
-            service_ids = request.form.getlist("servicios")
-            manicurista_id = request.form.get("manicurista_id", type=int)
-            fecha_raw = request.form.get("fecha", "")
-            hora_inicio_raw = request.form.get("hora_inicio", "")
-            notas = request.form.get("notas", "").strip()
-
-            if not nombre or not email or not telefono:
-                flash("Debes completar nombre, correo y teléfono.", "danger")
-                return render_template(
-                    "reservar.html",
-                    servicios_agrupados=servicios_agrupados,
-                    manicuristas=manicuristas,
-                    servicios_pre=servicios_pre,
-                    manicurista_pre=manicurista_pre,
-                    fecha_pre=fecha_pre,
-                )
-
-            if not service_ids or not manicurista_id or not fecha_raw or not hora_inicio_raw:
-                flash("Debes completar servicio, manicurista, fecha y hora.", "danger")
-                return render_template(
-                    "reservar.html",
-                    servicios_agrupados=servicios_agrupados,
-                    manicuristas=manicuristas,
-                    servicios_pre=servicios_pre,
-                    manicurista_pre=manicurista_pre,
-                    fecha_pre=fecha_pre,
-                )
-
-            try:
-                service_ids = [int(sid) for sid in service_ids]
-                fecha = datetime.strptime(fecha_raw, "%Y-%m-%d").date()
-                hora_inicio = parse_time(hora_inicio_raw)
-            except ValueError:
-                flash("Datos inválidos.", "danger")
-                return render_template(
-                    "reservar.html",
-                    servicios_agrupados=servicios_agrupados,
-                    manicuristas=manicuristas,
-                    servicios_pre=servicios_pre,
-                    manicurista_pre=manicurista_pre,
-                    fecha_pre=fecha_pre,
-                )
-
-            if not validate_future_date(fecha):
-                flash("No puedes reservar en una fecha pasada.", "danger")
-                return render_template(
-                    "reservar.html",
-                    servicios_agrupados=servicios_agrupados,
-                    manicuristas=manicuristas,
-                    servicios_pre=servicios_pre,
-                    manicurista_pre=manicurista_pre,
-                    fecha_pre=fecha_pre,
-                )
-
-            selected_services = get_selected_services(service_ids)
-
-            if len(selected_services) != len(service_ids):
-                flash("Servicios inválidos.", "danger")
-                return render_template(
-                    "reservar.html",
-                    servicios_agrupados=servicios_agrupados,
-                    manicuristas=manicuristas,
-                    servicios_pre=servicios_pre,
-                    manicurista_pre=manicurista_pre,
-                    fecha_pre=fecha_pre,
-                )
-
-            total_duration = calculate_total_duration(selected_services)
-
-            hora_fin_dt = combine_date_time(fecha, hora_inicio) + timedelta(minutes=total_duration)
-            hora_fin = hora_fin_dt.time()
-
-            weekday = fecha.weekday()
-            schedule = get_manicurista_schedule(manicurista_id, weekday)
-
-            if not schedule:
-                flash("No atiende ese día.", "danger")
-                return render_template(
-                    "reservar.html",
-                    servicios_agrupados=servicios_agrupados,
-                    manicuristas=manicuristas,
-                    servicios_pre=servicios_pre,
-                    manicurista_pre=manicurista_pre,
-                    fecha_pre=fecha_pre,
-                )
-
-            if hora_inicio < schedule["hora_inicio"] or hora_fin > schedule["hora_fin"]:
-                flash("Horario fuera de jornada.", "danger")
-                return render_template(
-                    "reservar.html",
-                    servicios_agrupados=servicios_agrupados,
-                    manicuristas=manicuristas,
-                    servicios_pre=servicios_pre,
-                    manicurista_pre=manicurista_pre,
-                    fecha_pre=fecha_pre,
-                )
-
-            if not is_slot_available(manicurista_id, fecha, hora_inicio, hora_fin):
-                flash("Horario no disponible.", "warning")
-                return render_template(
-                    "reservar.html",
-                    servicios_agrupados=servicios_agrupados,
-                    manicuristas=manicuristas,
-                    servicios_pre=servicios_pre,
-                    manicurista_pre=manicurista_pre,
-                    fecha_pre=fecha_pre,
-                )
-
-            cliente = fetch_one(
-                "SELECT id FROM usuarios WHERE email = %s LIMIT 1",
-                (email,),
-            )
-
-            if not cliente:
-                cliente = execute_query(
-                    """
-                    INSERT INTO usuarios (nombre, email, telefono, password_hash, rol, activo)
-                    VALUES (%s, %s, %s, %s, 'cliente', TRUE)
-                    RETURNING id
-                    """,
-                    (
-                        nombre,
-                        email,
-                        telefono,
-                        generate_password_hash(os.urandom(16).hex()),
-                    ),
-                    fetchone=True,
-                )
-            else:
-                execute_query(
-                    """
-                    UPDATE usuarios
-                    SET nombre=%s, telefono=%s, activo=TRUE
-                    WHERE id=%s
-                    """,
-                    (nombre, telefono, cliente["id"]),
-                )
-
-            cita = execute_query(
+        if not cliente:
+            cliente = execute_query(
                 """
-                INSERT INTO citas (cliente_id, manicurista_id, fecha, hora_inicio, hora_fin, estado, notas)
-                VALUES (%s, %s, %s, %s, %s, 'pendiente', %s)
+                INSERT INTO usuarios (nombre, email, telefono, password_hash, rol, activo)
+                VALUES (%s, %s, %s, %s, 'cliente', TRUE)
                 RETURNING id
                 """,
-                (cliente["id"], manicurista_id, fecha, hora_inicio, hora_fin, notas),
+                (
+                    nombre,
+                    email,
+                    telefono,
+                    generate_password_hash(os.urandom(16).hex()),
+                ),
                 fetchone=True,
             )
+        else:
+            execute_query(
+                """
+                UPDATE usuarios
+                SET nombre=%s, telefono=%s, activo=TRUE
+                WHERE id=%s
+                """,
+                (nombre, telefono, cliente["id"]),
+            )
 
-            for service in selected_services:
-                execute_query(
-                    "INSERT INTO cita_servicios (cita_id, servicio_id) VALUES (%s, %s)",
-                    (cita["id"], service["id"]),
-                )
+        cita = execute_query(
+            """
+            INSERT INTO citas (cliente_id, manicurista_id, fecha, hora_inicio, hora_fin, estado, notas)
+            VALUES (%s, %s, %s, %s, %s, 'pendiente', %s)
+            RETURNING id
+            """,
+            (cliente["id"], manicurista_id, fecha, hora_inicio, hora_fin, notas),
+            fetchone=True,
+        )
 
-            flash("✨ Tu cita fue agendada con éxito", "success")
-            return redirect(url_for("mis_citas"))
+        for service in selected_services:
+            execute_query(
+                "INSERT INTO cita_servicios (cita_id, servicio_id) VALUES (%s, %s)",
+                (cita["id"], service["id"]),
+            )
 
-            return render_template(
-            "reservar.html",
-            servicios_agrupados=servicios_agrupados,
-            manicuristas=manicuristas,
-            servicios_pre=servicios_pre,
-            manicurista_pre=manicurista_pre,
-            fecha_pre=fecha_pre,
+        flash("✨ Tu cita fue agendada con éxito", "success")
+        return redirect(url_for("mis_citas"))
+
+    # =========================
+    # GET
+    # =========================
+    return render_template(
+        "reservar.html",
+        servicios_agrupados=servicios_agrupados,
+        manicuristas=manicuristas,
+        servicios_pre=servicios_pre,
+        manicurista_pre=manicurista_pre,
+        fecha_pre=fecha_pre,
     )
 
 
