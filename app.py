@@ -945,6 +945,43 @@ def marcar_no_asistio(cita_id):
     return redirect(url_for("admin_citas"))
 
 
+@app.route("/admin/servicios", methods=["GET", "POST"])
+@admin_required
+def admin_servicios():
+
+    servicios = fetch_all("SELECT * FROM servicios ORDER BY id DESC")
+
+    return render_template(
+        "admin_servicios.html",
+        servicios=servicios,
+        categorias_servicio=[
+            "Manicure", "Pedicure", "Extensión",
+            "Kapping", "Pestañas", "Cejas", "Depilación"
+        ],
+        servicio_editar=None
+    )
+
+
+@app.route("/admin/servicios/<int:servicio_id>/editar", methods=["POST"])
+@admin_required
+def editar_servicio(servicio_id):
+
+    nombre = request.form.get("nombre")
+    categoria = request.form.get("categoria")
+    descripcion = request.form.get("descripcion")
+    duracion = request.form.get("duracion_min")
+    precio = request.form.get("precio")
+
+    execute_query("""
+        UPDATE servicios
+        SET nombre=%s, categoria=%s, descripcion=%s,
+            duracion_min=%s, precio=%s
+        WHERE id=%s
+    """, (nombre, categoria, descripcion, duracion, precio, servicio_id))
+
+    flash("Servicio actualizado", "success")
+    return redirect(url_for("admin_servicios"))
+
 # =========================
 # APP STARTUP
 # =========================
