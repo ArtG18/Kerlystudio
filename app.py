@@ -135,188 +135,126 @@ def inject_user():
 # =========================
 def init_db():
     conn = get_conn()
-    try:
-        with conn.cursor() as cur:
-            cur.execute(
-                """
-                CREATE TABLE IF NOT EXISTS usuarios (
-                    id SERIAL PRIMARY KEY,
-                    nombre VARCHAR(120) NOT NULL,
-                    email VARCHAR(150) UNIQUE NOT NULL,
-                    telefono VARCHAR(30),
-                    password_hash TEXT NOT NULL,
-                    rol VARCHAR(20) NOT NULL DEFAULT 'cliente',
-                    activo BOOLEAN NOT NULL DEFAULT TRUE,
-                    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
-                );
-                """
-            )
+    cur = conn.cursor()
 
-            cur.execute(
-                """
-                CREATE TABLE IF NOT EXISTS manicuristas (
-                    id SERIAL PRIMARY KEY,
-                    nombre VARCHAR(120) NOT NULL,
-                    activo BOOLEAN NOT NULL DEFAULT TRUE,
-                    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
-                );
-                """
-            )
+    # =========================
+    # USUARIOS
+    # =========================
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS usuarios (
+        id SERIAL PRIMARY KEY,
+        nombre TEXT,
+        email TEXT UNIQUE,
+        telefono TEXT,
+        password_hash TEXT,
+        rol TEXT DEFAULT 'cliente',
+        activo BOOLEAN DEFAULT TRUE
+    );
+    """)
 
-            cur.execute(
-                """
-                CREATE TABLE IF NOT EXISTS servicios (
-                    id SERIAL PRIMARY KEY,
-                    nombre VARCHAR(150) NOT NULL,
-                    descripcion TEXT,
-                    duracion_min INTEGER NOT NULL,
-                    precio NUMERIC(10, 2) NOT NULL DEFAULT 0,
-                    activo BOOLEAN NOT NULL DEFAULT TRUE,
-                    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
-                );
-                """
-            )
+    # =========================
+    # MANICURISTAS
+    # =========================
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS manicuristas (
+        id SERIAL PRIMARY KEY,
+        nombre TEXT NOT NULL,
+        activo BOOLEAN DEFAULT TRUE
+    );
+    """)
 
-            cur.execute(
-                """
-                ALTER TABLE servicios
-                ADD COLUMN IF NOT EXISTS categoria VARCHAR(50) NOT NULL DEFAULT 'Manicure';
-                """
-            )
+    # =========================
+    # SERVICIOS
+    # =========================
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS servicios (
+        id SERIAL PRIMARY KEY,
+        nombre TEXT NOT NULL,
+        descripcion TEXT,
+        duracion_min INTEGER NOT NULL,
+        precio INTEGER NOT NULL,
+        categoria TEXT,
+        imagen TEXT,
+        activo BOOLEAN DEFAULT TRUE
+    );
+    """)
 
-            cur.execute(
-                """
-                CREATE TABLE IF NOT EXISTS horarios_manicurista (
-                    id SERIAL PRIMARY KEY,
-                    manicurista_id INTEGER NOT NULL REFERENCES manicuristas(id) ON DELETE CASCADE,
-                    dia_semana INTEGER NOT NULL CHECK (dia_semana BETWEEN 0 AND 6),
-                    hora_inicio TIME NOT NULL,
-                    hora_fin TIME NOT NULL,
-                    activo BOOLEAN NOT NULL DEFAULT TRUE
-                );
-                """
-            )
+    # =========================
+    # CITAS
+    # =========================
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS citas (
+        id SERIAL PRIMARY KEY,
+        cliente_id INTEGER REFERENCES usuarios(id),
+        manicurista_id INTEGER REFERENCES manicuristas(id),
+        fecha DATE,
+        hora_inicio TIME,
+        hora_fin TIME,
+        estado TEXT DEFAULT 'pendiente',
+        notas TEXT,
+        creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+    """)
 
-            cur.execute(
-                """
-                CREATE TABLE IF NOT EXISTS citas (
-                    id SERIAL PRIMARY KEY,
-                    cliente_id INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
-                    manicurista_id INTEGER NOT NULL REFERENCES manicuristas(id),
-                    fecha DATE NOT NULL,
-                    hora_inicio TIME NOT NULL,
-                    hora_fin TIME NOT NULL,
-                    estado VARCHAR(30) NOT NULL DEFAULT 'pendiente',
-                    notas TEXT,
-                    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
-                );
-                """
-            )
+    # =========================
+    # RELACIÓN CITA-SERVICIOS
+    # =========================
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS cita_servicios (
+        id SERIAL PRIMARY KEY,
+        cita_id INTEGER REFERENCES citas(id) ON DELETE CASCADE,
+        servicio_id INTEGER REFERENCES servicios(id)
+    );
+    """)
 
-            cur.execute(
-                """
-                CREATE TABLE IF NOT EXISTS cita_servicios (
-                    id SERIAL PRIMARY KEY,
-                    cita_id INTEGER NOT NULL REFERENCES citas(id) ON DELETE CASCADE,
-                    servicio_id INTEGER NOT NULL REFERENCES servicios(id)
-                );
-                """
-            )
+    # =========================
+    # CONFIGURACIÓN
+    # =========================
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS configuracion (
+        id SERIAL PRIMARY KEY,
+        clave TEXT UNIQUE,
+        valor TEXT
+    );
+    """)
 
-            cur.execute("""
-                CREATE TABLE IF NOT EXISTS configuracion (
-                    id SERIAL PRIMARY KEY,
-                    clave TEXT UNIQUE,
-                    valor TEXT
-                );
-                """)
+    # =========================
+    # INSERTS INICIALES (SI NO EXISTEN)
+    # =========================
 
-            cur.execute("""
-                INSERT INTO configuracion (clave, valor)
-                VALUES ('whatsapp_numero', '56959257968')
-                ON CONFLICT (clave) DO NOTHING;
-             """)
+    # WhatsApp
+    cur.execute("""
+    INSERT INTO configuracion (clave, valor)
+    VALUES ('whatsapp_numero', '56900000000')
+    ON CONFLICT (clave) DO NOTHING;
+    """)
 
-            conn.commit()
-    finally:
-        conn.close()
+    # Manicuristas base
+    cur.execute("""
+    INSERT INTO manicuristas (nombre, activo)
+    VALUES 
+    ('Kerly', TRUE),
+    ('Andrea', TRUE)
+    ON CONFLICT DO NOTHING;
+    """)
 
-    seed_initial_data()
+    # Servicios base
+    cur.execute("""
+    INSERT INTO servicios (nombre, duracion_min, precio, categoria, imagen)
+    VALUES
+    ('Manicure', 45, 12000, 'Manicure', 'manicure.jpg'),
+    ('Pedicure', 60, 15000, 'Pedicure', 'pedicure.jpg'),
+    ('Extensión', 90, 25000, 'Extensión', 'extension.jpg'),
+    ('Kapping', 60, 18000, 'Kapping', 'kapping.jpg'),
+    ('Pestañas', 60, 20000, 'Pestañas', 'pestanas.jpg'),
+    ('Cejas', 30, 10000, 'Cejas', 'cejas.jpg'),
+    ('Depilación', 40, 15000, 'Depilación', 'depilacion.jpg')
+    ON CONFLICT DO NOTHING;
+    """)
 
-
-def seed_initial_data():
-    admin_email = os.getenv("ADMIN_EMAIL", "admin@kerlystudio.com")
-    admin_password = os.getenv("ADMIN_PASSWORD", "#Ks2026$")
-    admin_nombre = os.getenv("ADMIN_NAME", "Administrador")
-
-    existing_admin = fetch_one("SELECT id FROM usuarios WHERE rol = 'admin' LIMIT 1")
-
-    if existing_admin:
-        execute_query(
-            """
-            UPDATE usuarios
-            SET nombre = %s,
-                email = %s,
-                password_hash = %s,
-                activo = TRUE
-            WHERE id = %s
-            """,
-            (
-                admin_nombre,
-                admin_email,
-                generate_password_hash(admin_password),
-                existing_admin["id"],
-            ),
-        )
-    else:
-        execute_query(
-            """
-            INSERT INTO usuarios (nombre, email, telefono, password_hash, rol, activo)
-            VALUES (%s, %s, %s, %s, 'admin', TRUE)
-            """,
-            (
-                admin_nombre,
-                admin_email,
-                "",
-                generate_password_hash(admin_password),
-            ),
-        )
-
-    has_services = fetch_one("SELECT id FROM servicios LIMIT 1")
-    if not has_services:
-        default_services = [
-            ("Manicure Permanente", "Esmaltado permanente con preparación básica.", 90, 15000, "Manicure"),
-            ("Kapping", "Refuerzo sobre uña natural.", 120, 20000, "Kapping"),
-            ("Extensión de Uñas", "Set completo de extensión.", 180, 30000, "Extensiones"),
-            ("Pedicure Spa", "Pedicure con exfoliación e hidratación.", 90, 18000, "Pedicure"),
-        ]
-        for service in default_services:
-            execute_query(
-                """
-                INSERT INTO servicios (nombre, descripcion, duracion_min, precio, categoria)
-                VALUES (%s, %s, %s, %s, %s)
-                """,
-                service,
-            )
-
-    has_manicurists = fetch_one("SELECT id FROM manicuristas LIMIT 1")
-    if not has_manicurists:
-        for nombre in ["Kerly", "Valentina", "Camila"]:
-            execute_query(
-                "INSERT INTO manicuristas (nombre) VALUES (%s)",
-                (nombre,),
-            )
-
-        manicuristas = fetch_all("SELECT id FROM manicuristas")
-        for m in manicuristas:
-            for dia_semana in range(0, 6):  # lunes a sábado
-                execute_query(
-                    """
-                    INSERT INTO horarios_manicurista (manicurista_id, dia_semana, hora_inicio, hora_fin)
-                    VALUES (%s, %s, %s, %s)
-                    """,
-                    (m["id"], dia_semana, "09:00", "19:00"),
-                )
+    conn.commit()
+    cur.close()
+    conn.close()
 
 
 # =========================
