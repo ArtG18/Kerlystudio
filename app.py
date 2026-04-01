@@ -794,6 +794,7 @@ def obtener_horarios():
 # =========================
 # ADMIN ROUTES
 # =========================
+
 # =========================
 # DASHBOARD
 # =========================
@@ -823,7 +824,7 @@ def admin_dashboard():
 
 
 # =========================
-# LISTADO DE CITAS
+# CITAS
 # =========================
 @app.route("/admin/citas")
 @admin_required
@@ -839,7 +840,7 @@ def admin_citas():
             u.nombre AS cliente_nombre,
             u.telefono,
             m.nombre AS manicurista_nombre,
-            STRING_AGG(s.nombre, ', ') AS servicios
+            COALESCE(STRING_AGG(s.nombre, ', '), '') AS servicios
         FROM citas c
         JOIN usuarios u ON u.id = c.cliente_id
         JOIN manicuristas m ON m.id = c.manicurista_id
@@ -858,96 +859,42 @@ def admin_citas():
         AND c.fecha = CURRENT_DATE
     """)
 
-    return render_template(
-        "admin_citas.html",
-        citas=citas,
-        ingresos_hoy=ingresos_hoy
-    )
+    return render_template("admin_citas.html", citas=citas, ingresos_hoy=ingresos_hoy)
 
 
 # =========================
-# CONFIRMAR
+# ACCIONES CITAS
 # =========================
-@app.route("/admin/citas/<int:cita_id>/confirmar", methods=["POST"])
+@app.route("/admin/citas/<int:id>/<accion>", methods=["POST"])
 @admin_required
-def confirmar_cita(cita_id):
+def acciones_cita(id, accion):
 
-    execute_query(
-        "UPDATE citas SET estado = 'confirmada' WHERE id = %s",
-        (cita_id,)
-    )
+    if accion not in ["confirmada", "rechazada", "completada", "cancelada_admin", "no_asistio"]:
+        return redirect(url_for("admin_citas"))
 
-    flash("Cita confirmada", "success")
+    execute_query("UPDATE citas SET estado = %s WHERE id = %s", (accion, id))
+
     return redirect(url_for("admin_citas"))
 
 
 # =========================
-# RECHAZAR
+# SERVICIOS
 # =========================
-@app.route("/admin/citas/<int:cita_id>/rechazar", methods=["POST"])
-@admin_required
-def rechazar_cita(cita_id):
-
-    execute_query(
-        "UPDATE citas SET estado = 'rechazada' WHERE id = %s",
-        (cita_id,)
-    )
-
-    flash("Cita rechazada", "info")
-    return redirect(url_for("admin_citas"))
-
-
-# =========================
-# COMPLETAR (💸 CLAVE)
-# =========================
-@app.route("/admin/citas/<int:cita_id>/completar", methods=["POST"])
-@admin_required
-def completar_cita(cita_id):
-
-    execute_query(
-        "UPDATE citas SET estado = 'completada' WHERE id = %s",
-        (cita_id,)
-    )
-
-    flash("Cita completada 💸", "success")
-    return redirect(url_for("admin_citas"))
-
-
-# =========================
-# CANCELAR
-# =========================
-@app.route("/admin/citas/<int:cita_id>/cancelar", methods=["POST"])
-@admin_required
-def cancelar_cita_admin(cita_id):
-
-    execute_query(
-        "UPDATE citas SET estado = 'cancelada_admin' WHERE id = %s",
-        (cita_id,)
-    )
-
-    flash("Cita cancelada", "warning")
-    return redirect(url_for("admin_citas"))
-
-
-# =========================
-# NO ASISTIÓ
-# =========================
-@app.route("/admin/citas/<int:cita_id>/no-asistio", methods=["POST"])
-@admin_required
-def marcar_no_asistio(cita_id):
-
-    execute_query(
-        "UPDATE citas SET estado = 'no_asistio' WHERE id = %s",
-        (cita_id,)
-    )
-
-    flash("Cliente no asistió", "warning")
-    return redirect(url_for("admin_citas"))
-
-
 @app.route("/admin/servicios", methods=["GET", "POST"])
 @admin_required
 def admin_servicios():
+
+    if request.method == "POST":
+        nombre = request.form.get("nombre")
+        categoria = request.form.get("categoria")
+        duracion = request.form.get("duracion_min")
+        precio = request.form.get("precio")
+
+        if nombre:
+            execute_query("""
+                INSERT INTO servicios (nombre, categoria, duracion_min, precio, activo)
+                VALUES (%s, %s, %s, %s, TRUE)
+            """, (nombre, categoria, duracion, precio))
 
     servicios = fetch_all("SELECT * FROM servicios ORDER BY id DESC")
 
@@ -962,26 +909,16 @@ def admin_servicios():
     )
 
 
-@app.route("/admin/servicios/<int:servicio_id>/editar", methods=["POST"])
+@app.route("/admin/servicios/<int:id>/eliminar", methods=["POST"])
 @admin_required
-def editar_servicio(servicio_id):
-
-    nombre = request.form.get("nombre")
-    categoria = request.form.get("categoria")
-    descripcion = request.form.get("descripcion")
-    duracion = request.form.get("duracion_min")
-    precio = request.form.get("precio")
-
-    execute_query("""
-        UPDATE servicios
-        SET nombre=%s, categoria=%s, descripcion=%s,
-            duracion_min=%s, precio=%s
-        WHERE id=%s
-    """, (nombre, categoria, descripcion, duracion, precio, servicio_id))
-
-    flash("Servicio actualizado", "success")
+def eliminar_servicio(id):
+    execute_query("DELETE FROM servicios WHERE id = %s", (id,))
     return redirect(url_for("admin_servicios"))
 
+
+# =========================
+# MANICURISTAS
+# =========================
 @app.route("/admin/manicuristas", methods=["GET", "POST"])
 @admin_required
 def admin_manicuristas():
@@ -997,13 +934,28 @@ def admin_manicuristas():
             """, (nombre,))
 
     manicuristas = fetch_all("""
-        SELECT * FROM manicuristas ORDER BY nombre
+        SELECT DISTINCT ON (nombre) *
+        FROM manicuristas
+        ORDER BY nombre, id
     """)
 
-    return render_template(
-        "admin_manicuristas.html",
-        manicuristas=manicuristas
-    )
+    return render_template("admin_manicuristas.html", manicuristas=manicuristas)
+
+
+@app.route("/admin/manicuristas/<int:id>/eliminar", methods=["POST"])
+@admin_required
+def eliminar_manicurista(id):
+    execute_query("DELETE FROM manicuristas WHERE id = %s", (id,))
+    return redirect(url_for("admin_manicuristas"))
+
+
+# ==========
+# HORARIOS 
+# ==========
+@app.route("/admin/horarios")
+@admin_required
+def admin_horarios():
+    return render_template("admin_horarios.html")
 
 # =========================
 # APP STARTUP
