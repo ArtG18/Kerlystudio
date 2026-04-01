@@ -957,6 +957,39 @@ def eliminar_manicurista(id):
 def admin_horarios():
     return render_template("admin_horarios.html")
 
+# ==========
+# CALENDARIO 
+# ==========
+@app.route("/admin/calendar-events")
+@admin_required
+def admin_calendar_events():
+
+    eventos = fetch_all("""
+        SELECT 
+            c.id,
+            c.fecha,
+            c.hora_inicio,
+            c.hora_fin,
+            u.nombre AS cliente,
+            m.nombre AS manicurista
+        FROM citas c
+        JOIN usuarios u ON u.id = c.cliente_id
+        JOIN manicuristas m ON m.id = c.manicurista_id
+        WHERE c.estado NOT IN ('cancelada_admin')
+    """)
+
+    # formato para calendario JS
+    eventos_formateados = []
+
+    for e in eventos:
+        eventos_formateados.append({
+            "title": f"{e['cliente']} - {e['manicurista']}",
+            "start": f"{e['fecha']}T{e['hora_inicio']}",
+            "end": f"{e['fecha']}T{e['hora_fin']}"
+        })
+
+    return jsonify(eventos_formateados)
+
 # =========================
 # APP STARTUP
 # =========================
