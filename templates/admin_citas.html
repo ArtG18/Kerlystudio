@@ -9,7 +9,6 @@
     <small class="text-muted">Ingresos de citas completadas hoy</small>
 </div>
 
-<!-- TABLA -->
 <table class="table align-middle">
 
 <thead>
@@ -56,22 +55,32 @@
 
 {% if c.estado == 'pendiente' %}
 
-<a href="/admin/citas/{{ c.id }}/confirmada" class="btn btn-success btn-sm">✔</a>
-<a href="/admin/citas/{{ c.id }}/cancelada" class="btn btn-danger btn-sm">✖</a>
+<form method="POST" action="/admin/citas/{{ c.id }}/confirmada" style="display:inline;">
+    <button class="btn btn-success btn-sm">✔</button>
+</form>
+
+<form method="POST" action="/admin/citas/{{ c.id }}/cancelada_admin" style="display:inline;">
+    <button class="btn btn-danger btn-sm">✖</button>
+</form>
 
 {% endif %}
 
 {% if c.estado == 'confirmada' %}
 
-<a href="/admin/citas/{{ c.id }}/completada" class="btn btn-dark btn-sm">
-✔ Finalizar
-</a>
+<form method="POST" action="/admin/citas/{{ c.id }}/completada" style="display:inline;">
+    <button class="btn btn-dark btn-sm">✔ Finalizar</button>
+</form>
 
-<a href="/admin/citas/{{ c.id }}/cancelada" class="btn btn-danger btn-sm">
-✖ Cancelar
-</a>
+<form method="POST" action="/admin/citas/{{ c.id }}/cancelada_admin" style="display:inline;">
+    <button class="btn btn-danger btn-sm">✖ Cancelar</button>
+</form>
 
 {% endif %}
+
+<!-- 🗑 ELIMINAR -->
+<form method="POST" action="/admin/citas/{{ c.id }}/eliminar" style="display:inline;">
+    <button class="btn btn-outline-danger btn-sm">🗑</button>
+</form>
 
 </td>
 

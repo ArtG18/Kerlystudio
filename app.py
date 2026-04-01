@@ -252,8 +252,9 @@ def init_db():
     INSERT INTO manicuristas (nombre, activo)
     VALUES 
     ('Kerly', TRUE),
-    ('Andrea', TRUE),
-    ('Camila', TRUE)
+    ('Adri', TRUE),
+    ('Josi', TRUE),
+    ('Leonela', TRUE)
     ON CONFLICT DO NOTHING;
     """)
 
@@ -862,6 +863,12 @@ def admin_citas():
     return render_template("admin_citas.html", citas=citas, ingresos_hoy=ingresos_hoy)
 
 
+@app.route("/admin/citas/<int:id>/eliminar", methods=["POST"])
+@admin_required
+def eliminar_cita(id):
+    execute_query("DELETE FROM citas WHERE id = %s", (id,))
+    return redirect(url_for("admin_citas"))
+
 # =========================
 # ACCIONES CITAS
 # =========================
@@ -884,29 +891,57 @@ def acciones_cita(id, accion):
 @admin_required
 def admin_servicios():
 
-    if request.method == "POST":
+    servicio_editar = None
+
+    # CREAR
+    if request.method == "POST" and not request.form.get("editar_id"):
         nombre = request.form.get("nombre")
         categoria = request.form.get("categoria")
+        descripcion = request.form.get("descripcion")
         duracion = request.form.get("duracion_min")
         precio = request.form.get("precio")
 
         if nombre:
             execute_query("""
-                INSERT INTO servicios (nombre, categoria, duracion_min, precio, activo)
-                VALUES (%s, %s, %s, %s, TRUE)
-            """, (nombre, categoria, duracion, precio))
+                INSERT INTO servicios (nombre, categoria, descripcion, duracion_min, precio, activo)
+                VALUES (%s,%s,%s,%s,%s,TRUE)
+            """, (nombre, categoria, descripcion, duracion, precio))
+
+    # EDITAR
+    editar_id = request.args.get("editar")
+    if editar_id:
+        servicio_editar = fetch_one("SELECT * FROM servicios WHERE id = %s", (editar_id,))
 
     servicios = fetch_all("SELECT * FROM servicios ORDER BY id DESC")
 
     return render_template(
         "admin_servicios.html",
         servicios=servicios,
+        servicio_editar=servicio_editar,
         categorias_servicio=[
-            "Manicure", "Pedicure", "Extensión",
-            "Kapping", "Pestañas", "Cejas", "Depilación"
-        ],
-        servicio_editar=None
+            "Manicure","Pedicure","Extensión","Kapping","Pestañas","Cejas","Depilación"
+        ]
     )
+
+
+@app.route("/admin/servicios/<int:servicio_id>/editar", methods=["POST"])
+@admin_required
+def editar_servicio(servicio_id):
+
+    nombre = request.form.get("nombre")
+    categoria = request.form.get("categoria")
+    descripcion = request.form.get("descripcion")
+    duracion = request.form.get("duracion_min")
+    precio = request.form.get("precio")
+
+    execute_query("""
+        UPDATE servicios
+        SET nombre=%s, categoria=%s, descripcion=%s,
+            duracion_min=%s, precio=%s
+        WHERE id=%s
+    """, (nombre, categoria, descripcion, duracion, precio, servicio_id))
+
+    return redirect(url_for("admin_servicios"))
 
 
 @app.route("/admin/servicios/<int:id>/eliminar", methods=["POST"])
@@ -955,7 +990,18 @@ def eliminar_manicurista(id):
 @app.route("/admin/horarios")
 @admin_required
 def admin_horarios():
-    return render_template("admin_horarios.html")
+
+    manicuristas = fetch_all("""
+        SELECT id, nombre
+        FROM manicuristas
+        WHERE activo = TRUE
+        ORDER BY nombre
+    """)
+
+    return render_template(
+        "admin_horarios.html",
+        manicuristas=manicuristas
+    )
 
 # ==========
 # CALENDARIO 
