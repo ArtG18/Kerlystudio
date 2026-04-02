@@ -2,172 +2,175 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <title>Kerly Studio</title>
-
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
 body {
-font-family:'Poppins',sans-serif;
-margin:0;
+    margin: 0;
+    font-family: 'Segoe UI', sans-serif;
+    background: #fafafa;
+    color: #222;
+}
+
+/* NAV */
+.nav {
+    display: flex;
+    justify-content: space-between;
+    padding: 18px 30px;
+    background: white;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+
+.logo {
+    font-weight: 700;
+    font-size: 1.3rem;
+}
+
+.nav a {
+    text-decoration: none;
+    color: #333;
+    margin-left: 20px;
+}
+
+/* BOTONES */
+.btn {
+    padding: 10px 22px;
+    border-radius: 30px;
+    text-decoration: none;
+    font-weight: 500;
+    transition: 0.2s;
+}
+
+.btn-primary {
+    background: linear-gradient(45deg, #ff4d94, #ff0066);
+    color: white;
+}
+
+.btn-outline {
+    border: 2px solid #ff4d94;
+    color: #ff4d94;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
 }
 
 /* HERO */
 .hero {
-height:90vh;
-display:flex;
-align-items:center;
-justify-content:center;
-text-align:center;
-color:white;
-background:url("/static/portada.jpeg") center/cover fixed;
-position:relative;
-}
-.hero::before {
-content:"";
-position:absolute;
-inset:0;
-background:rgba(0,0,0,0.6);
-}
-.hero-content {
-position:relative;
-z-index:2;
+    text-align: center;
+    padding: 70px 20px 30px;
+    animation: fadeUp 0.8s ease;
 }
 
-/* BOTONES */
-.btn-main {
-background:linear-gradient(135deg,#ff4d94,#e60073);
-color:white;
-padding:14px 30px;
-border-radius:30px;
-text-decoration:none;
-display:inline-block;
-margin-top:10px;
-cursor:pointer;
+.hero h1 {
+    font-size: 2.4rem;
 }
 
-/* STICKY */
-.sticky-btn {
-position:fixed;
-bottom:80px;
-right:20px;
-background:#ff4d94;
-color:white;
-padding:14px 20px;
-border-radius:30px;
-z-index:999;
+.hero p {
+    color: #777;
 }
 
-/* WHATSAPP */
-.whatsapp {
-position:fixed;
-bottom:20px;
-right:20px;
-background:#25D366;
-width:60px;
-height:60px;
-border-radius:50%;
-display:flex;
-align-items:center;
-justify-content:center;
-color:white;
-font-size:26px;
+.hero-buttons {
+    margin-top: 20px;
 }
 
-/* SECCIONES */
-.section {
-padding:80px 20px;
-text-align:center;
+/* SERVICES */
+.services {
+    padding: 50px 20px;
+    text-align: center;
+}
+
+.services-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(230px,1fr));
+    gap: 20px;
+}
+
+.service-card {
+    background: white;
+    padding: 25px;
+    border-radius: 18px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.06);
+    transition: 0.3s;
+}
+
+.service-card:hover {
+    transform: translateY(-6px);
+}
+
+.price {
+    color: #ff4d94;
+    font-weight: bold;
+    margin: 10px 0;
+}
+
+/* GALERÍA */
+.gallery {
+    padding: 40px 20px;
+    text-align: center;
+}
+
+.gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px,1fr));
+    gap: 12px;
 }
 
 .gallery img {
-width:100%;
-max-width:250px;
-margin:10px;
-border-radius:15px;
-cursor:pointer;
+    width: 100%;
+    border-radius: 12px;
+    transition: 0.3s;
+}
+
+.gallery img:hover {
+    transform: scale(1.05);
+}
+
+/* ANIMACIÓN */
+@keyframes fadeUp {
+    from {
+        opacity: 0;
+        transform: translateY(40px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* WHATSAPP */
+.whatsapp-float {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: #25D366;
+    border-radius: 50%;
+    padding: 12px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+}
+
+.whatsapp-float img {
+    width: 28px;
 }
 </style>
-</head>
 
+</head>
 <body>
+
+<div class="nav">
+    <div class="logo">Kerly Studio</div>
+    <div>
+        <a href="/">Inicio</a>
+        <a href="/reservar" class="btn btn-primary">Reservar</a>
+    </div>
+</div>
 
 {% block content %}{% endblock %}
 
-<!-- BOTÓN FIJO -->
-<a href="{{ url_for('reservas.reservar') }}" class="sticky-btn">
-Reservar 💅
+<a href="https://wa.me/{{ whatsapp_numero }}" class="whatsapp-float">
+    <img src="{{ url_for('static', filename='img/whatsapp.png') }}">
 </a>
-
-<!-- WHATSAPP CLIENTE -->
-<a onclick="enviarWhatsApp()" class="whatsapp">
-💬
-</a>
-
-<script>
-/* CLIENTE */
-function enviarWhatsApp(servicio="", fecha="", hora="") {
-
-let numero = "{{ whatsapp_numero }}";
-
-let mensaje = "Hola! 😊 Quiero agendar una cita:\n\n";
-
-if(servicio){
-mensaje += "💅 Servicio: " + servicio + "\n";
-}
-
-if(fecha){
-mensaje += "📅 Fecha: " + fecha + "\n";
-}
-
-if(hora){
-mensaje += "⏰ Hora: " + hora + "\n";
-}
-
-if(!servicio && !fecha && !hora){
-mensaje += "💬 Me gustaría ver disponibilidad y reservar";
-}
-
-let url = "https://wa.me/" + numero + "?text=" + encodeURIComponent(mensaje);
-
-window.open(url, "_blank");
-}
-
-/* CONFIRMAR CITA */
-function confirmarCita(nombre, servicio, fecha, hora) {
-
-let numero = "{{ whatsapp_numero }}";
-
-let mensaje = "Hola " + nombre + " 😊\n\n";
-mensaje += "✨ Tu cita ha sido CONFIRMADA:\n\n";
-mensaje += "💅 Servicio: " + servicio + "\n";
-mensaje += "📅 Fecha: " + fecha + "\n";
-mensaje += "⏰ Hora: " + hora + "\n\n";
-mensaje += "Te esperamos 💖";
-
-let url = "https://wa.me/" + numero + "?text=" + encodeURIComponent(mensaje);
-
-window.open(url, "_blank");
-}
-
-/* RECORDATORIO */
-function recordatorio(nombre, fecha, hora){
-
-let numero = "{{ whatsapp_numero }}";
-
-let mensaje = "Hola " + nombre + " 😊\n\n";
-mensaje += "⏰ Te recordamos tu cita:\n\n";
-mensaje += "📅 Fecha: " + fecha + "\n";
-mensaje += "⏰ Hora: " + hora + "\n\n";
-mensaje += "¡Te esperamos! 💅";
-
-let url = "https://wa.me/" + numero + "?text=" + encodeURIComponent(mensaje);
-
-window.open(url, "_blank");
-}
-</script>
 
 </body>
 </html>

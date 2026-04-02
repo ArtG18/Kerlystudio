@@ -2,238 +2,260 @@
 {% block content %}
 
 <style>
-.reservar-header {
-    text-align: center;
-    margin-bottom: 20px;
-}
-
-.reservar-header h2 {
-    font-weight: 700;
-}
-
-.form-card {
-    background: white;
-    border-radius: 20px;
+.container {
+    max-width: 520px;
+    margin: auto;
     padding: 20px;
+}
+
+/* STEPS */
+.step {
+    display: none;
+    animation: fade 0.4s ease;
+}
+
+.step.active {
+    display: block;
+}
+
+@keyframes fade {
+    from {opacity:0; transform:translateY(20px);}
+    to {opacity:1; transform:translateY(0);}
+}
+
+/* CARD */
+.card {
+    background: white;
+    padding: 20px;
+    border-radius: 20px;
+    margin-bottom: 15px;
     box-shadow: 0 10px 25px rgba(0,0,0,0.05);
 }
 
-.form-control, .form-select {
-    border-radius: 12px;
-    padding: 12px;
-    border: 1px solid #eee;
-    margin-bottom: 12px;
+/* TITLES */
+h3 {
+    margin-bottom: 15px;
 }
 
-.horas-grid {
+/* GRID */
+.grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
     gap: 10px;
 }
 
-.hora-btn {
-    padding: 10px;
-    border-radius: 10px;
+/* SERVICE */
+.service {
+    padding: 12px;
     border: 1px solid #eee;
-    text-align: center;
+    border-radius: 12px;
     cursor: pointer;
-    transition: 0.2s;
 }
 
-.hora-btn:hover {
-    background: #fff0f6;
-}
-
-.hora-btn.selected {
+.service.active {
     background: #ff4d94;
     color: white;
 }
 
-.hora-btn.disabled {
-    background: #eee;
-    color: #999;
-    cursor: not-allowed;
+/* MANICURISTA */
+.mani {
+    padding: 12px;
+    border: 1px solid #eee;
+    border-radius: 12px;
+    text-align: center;
+    cursor: pointer;
 }
 
+.mani.active {
+    background: #ff4d94;
+    color: white;
+}
+
+/* HORAS */
+.hora {
+    padding: 10px;
+    border: 1px solid #eee;
+    border-radius: 10px;
+    text-align: center;
+    cursor: pointer;
+}
+
+.hora.active {
+    background: #ff4d94;
+    color: white;
+}
+
+/* BUTTON */
 .btn-main {
     width: 100%;
-    margin-top: 15px;
+    padding: 14px;
+    border-radius: 30px;
+    background: linear-gradient(45deg,#ff4d94,#ff0066);
+    color: white;
+    border: none;
+    cursor: pointer;
 }
 
-.loading {
-    display: none;
-    text-align: center;
-    margin-top: 10px;
-    font-size: 0.9rem;
-    color: #777;
+/* RESUMEN */
+.resumen {
+    background: #fff0f6;
+    padding: 15px;
+    border-radius: 15px;
+    margin-bottom: 15px;
 }
 </style>
 
-<div class="reservar-header">
-    <h2>Completa tu reserva ✨</h2>
-    <p class="text-muted">Solo un paso más 💅</p>
+<div class="container">
+
+<form method="POST" id="form">
+
+<!-- STEP 1 -->
+<div class="step active" id="step1">
+<div class="card">
+<h3>Selecciona servicio</h3>
+
+<div class="grid">
+{% for s in servicios %}
+<div class="service" data-id="{{ s.id }}" data-nombre="{{ s.nombre }}" data-precio="{{ s.precio }}">
+{{ s.nombre }} - ${{ s.precio }}
+</div>
+{% endfor %}
 </div>
 
-<div class="form-card">
+<input type="hidden" name="servicio_id" id="servicio">
+</div>
+</div>
 
-<form method="POST" id="formReserva">
+<!-- STEP 2 -->
+<div class="step" id="step2">
+<div class="card">
+<h3>Profesional</h3>
 
-<input type="text" name="nombre" placeholder="Nombre" class="form-control" required>
-<input type="text" name="telefono" placeholder="Teléfono" class="form-control" required>
-<input type="email" name="email" placeholder="Correo" class="form-control" required>
+<div class="grid">
+<div class="mani" data-id="1">Adri</div>
+<div class="mani" data-id="2">Kerly</div>
+<div class="mani" data-id="3">Josi</div>
+<div class="mani" data-id="4">Leonela</div>
+</div>
 
-<h6>Profesional</h6>
-<select name="manicurista_id" class="form-select" required>
-{% for m in manicuristas %}
-<option value="{{ m.id }}">{{ m.nombre }}</option>
-{% endfor %}
-</select>
+<input type="hidden" name="manicurista_id" id="manicurista">
+</div>
+</div>
 
-<h6>Fecha</h6>
-<input type="date" name="fecha" id="fecha" class="form-control" required>
+<!-- STEP 3 -->
+<div class="step" id="step3">
+<div class="card">
+<h3>Fecha</h3>
+<input type="date" name="fecha" id="fecha" required>
+</div>
+</div>
 
-<h6>Hora</h6>
-<input type="hidden" name="hora_inicio" id="hora_inicio">
-<div class="horas-grid" id="horasContainer"></div>
+<!-- STEP 4 -->
+<div class="step" id="step4">
+<div class="card">
+<h3>Hora</h3>
 
-<button type="submit" class="btn btn-main" id="btnReservar">
-Confirmar reserva
-</button>
+<div class="grid" id="horas"></div>
 
-<div class="loading" id="loadingText">
-Enviando solicitud...
+<input type="hidden" name="hora_inicio" id="hora">
+</div>
+</div>
+
+<!-- STEP 5 -->
+<div class="step" id="step5">
+
+<div class="resumen" id="resumen"></div>
+
+<div class="card">
+<input type="text" name="nombre" placeholder="Nombre" required>
+<input type="text" name="telefono" placeholder="Teléfono" required>
+<input type="email" name="email" placeholder="Correo" required>
+</div>
+
+<button class="btn-main">Confirmar reserva</button>
+
 </div>
 
 </form>
 
 </div>
 
-<!-- MODAL -->
-<div id="modalExito" style="
-display:none;
-position:fixed;
-top:0;
-left:0;
-width:100%;
-height:100%;
-background:rgba(0,0,0,0.6);
-justify-content:center;
-align-items:center;
-z-index:9999;
-">
-
-<div style="
-background:white;
-padding:25px;
-border-radius:20px;
-text-align:center;
-max-width:300px;
-">
-
-<h4>✨ Solicitud enviada</h4>
-<p>Tu cita fue enviada.<br>La manicurista debe confirmarla.</p>
-
-<button onclick="cerrarModal()" class="btn btn-main">
-Aceptar
-</button>
-
-</div>
-</div>
-
 <script>
-const horas = [
-"09:00","09:30","10:00","10:30",
-"11:00","11:30","12:00","12:30",
-"14:00","14:30","15:00","15:30",
-"16:00","16:30","17:00","17:30"
-];
+let currentStep = 1;
+const next = () => {
+    document.getElementById("step"+currentStep).classList.remove("active");
+    currentStep++;
+    document.getElementById("step"+currentStep).classList.add("active");
+    window.scrollTo({top:0, behavior:'smooth'});
+};
 
-const container = document.getElementById("horasContainer");
-const inputHora = document.getElementById("hora_inicio");
+/* SERVICIO */
+document.querySelectorAll(".service").forEach(el=>{
+    el.onclick=()=>{
+        document.querySelectorAll(".service").forEach(e=>e.classList.remove("active"));
+        el.classList.add("active");
 
-// 🔥 BLOQUEAR FECHAS PASADAS
-const hoy = new Date().toISOString().split("T")[0];
-document.getElementById("fecha").setAttribute("min", hoy);
+        document.getElementById("servicio").value = el.dataset.id;
+        window.servicioNombre = el.dataset.nombre;
+        window.servicioPrecio = el.dataset.precio;
 
-// 🔥 RENDER HORAS PRO
-function renderHoras(ocupadas=[]) {
+        next();
+    };
+});
 
-    container.innerHTML = "";
+/* MANICURISTA */
+document.querySelectorAll(".mani").forEach(el=>{
+    el.onclick=()=>{
+        document.querySelectorAll(".mani").forEach(e=>e.classList.remove("active"));
+        el.classList.add("active");
 
-    const fechaSeleccionada = document.getElementById("fecha").value;
-    const ahora = new Date();
+        document.getElementById("manicurista").value = el.dataset.id;
+        window.maniNombre = el.innerText;
 
-    horas.forEach(h => {
+        next();
+    };
+});
 
-        let horaDate = new Date(`${fechaSeleccionada}T${h}`);
+/* FECHA */
+document.getElementById("fecha").addEventListener("change", ()=>{
+    next();
+    renderHoras();
+});
 
-        // ❌ ocultar horas pasadas hoy
-        if (fechaSeleccionada === hoy && horaDate < ahora) {
-            return;
-        }
+/* HORAS */
+const horas = ["09:00","10:00","11:00","12:00","14:00","15:00","16:00","17:00"];
 
-        let div = document.createElement("div");
-        div.className = "hora-btn";
-        div.innerText = h;
+function renderHoras(){
+    let cont = document.getElementById("horas");
+    cont.innerHTML="";
 
-        if (ocupadas.includes(h)) {
-            div.classList.add("disabled");
-        } else {
-            div.onclick = () => {
-                document.querySelectorAll(".hora-btn").forEach(b => b.classList.remove("selected"));
-                div.classList.add("selected");
-                inputHora.value = h;
-            };
-        }
+    horas.forEach(h=>{
+        let div=document.createElement("div");
+        div.className="hora";
+        div.innerText=h;
 
-        container.appendChild(div);
+        div.onclick=()=>{
+            document.querySelectorAll(".hora").forEach(e=>e.classList.remove("active"));
+            div.classList.add("active");
+
+            document.getElementById("hora").value=h;
+
+            buildResumen();
+            next();
+        };
+
+        cont.appendChild(div);
     });
 }
 
-// 🔥 FETCH HORAS
-async function cargarHoras() {
-
-    let fecha = document.getElementById("fecha").value;
-    let manicurista = document.querySelector("[name='manicurista_id']").value;
-
-    if (!fecha || !manicurista) return;
-
-    try {
-        let res = await fetch(`/horas-disponibles?fecha=${fecha}&manicurista_id=${manicurista}`);
-        let data = await res.json();
-
-        renderHoras(data.ocupadas);
-    } catch {
-        renderHoras();
-    }
-}
-
-// EVENTOS
-document.getElementById("fecha").addEventListener("change", cargarHoras);
-document.querySelector("[name='manicurista_id']").addEventListener("change", cargarHoras);
-
-// INICIAL
-renderHoras();
-
-// 🔥 VALIDACIÓN + MODAL
-document.getElementById("formReserva").addEventListener("submit", function(e) {
-
-    if (!inputHora.value) {
-        e.preventDefault();
-        alert("Selecciona una hora");
-        return;
-    }
-
-    document.getElementById("btnReservar").innerText = "Enviando...";
-    document.getElementById("loadingText").style.display = "block";
-
-    setTimeout(() => {
-        document.getElementById("modalExito").style.display = "flex";
-    }, 800);
-});
-
-function cerrarModal() {
-    window.location.href = "/";
+/* RESUMEN */
+function buildResumen(){
+    document.getElementById("resumen").innerHTML = `
+        <strong>Servicio:</strong> ${window.servicioNombre}<br>
+        <strong>Profesional:</strong> ${window.maniNombre}<br>
+        <strong>Fecha:</strong> ${document.getElementById("fecha").value}<br>
+        <strong>Hora:</strong> ${document.getElementById("hora").value}<br>
+        <strong>Total:</strong> $${window.servicioPrecio}
+    `;
 }
 </script>
 

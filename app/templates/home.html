@@ -2,67 +2,48 @@
 {% block content %}
 
 <!-- HERO -->
-<div class="hero">
-<div class="hero-content">
+<section class="hero">
+    <h1>Uñas perfectas</h1>
+    <p>Diseños profesionales que elevan tu estilo</p>
 
-<h1>Uñas perfectas 💅</h1>
-
-<p>Resultados que elevan tu estilo</p>
-
-<p style="color:#ff4d94;">
-⚡ Últimos cupos disponibles esta semana
-</p>
-
-<a href="{{ url_for('reservas.reservar') }}" class="btn-main">
-Agendar ahora 💅
-</a>
-
-<button onclick="enviarWhatsApp()" class="btn-main">
-WhatsApp rápido 💬
-</button>
-
-</div>
-</div>
+    <div class="hero-buttons">
+        <a href="/reservar" class="btn btn-primary">Agendar cita</a>
+        <a href="https://wa.me/{{ whatsapp_numero }}" class="btn btn-outline">WhatsApp</a>
+    </div>
+</section>
 
 <!-- SERVICIOS -->
-<div class="section">
-<h2>Servicios</h2>
+<section class="services">
+    <h2>Servicios</h2>
 
-{% for s in servicios %}
-<p>{{ s.nombre }} - ${{ s.precio }}</p>
-{% endfor %}
+    <div class="services-grid">
+        {% for s in servicios %}
+        <div class="service-card">
+            <h3>{{ s.nombre }}</h3>
+            <div class="price">${{ s.precio }}</div>
 
-</div>
+            <a href="/reservar?servicio={{ s.id }}" class="btn btn-primary">
+                Reservar
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+</section>
 
 <!-- GALERÍA -->
-<div class="section">
-<h2>Trabajos</h2>
+<section class="gallery">
+    <h2>Trabajos</h2>
 
-<div class="gallery">
-<img src="/static/foto1.jpeg">
-<img src="/static/foto2.jpeg">
-<img src="/static/foto3.jpeg">
-</div>
-
-</div>
-
-<!-- CTA FINAL -->
-<div class="section">
-
-<h2>No esperes más</h2>
-
-<p style="color:#ff4d94;">
-⏳ Los cupos se llenan rápido
-</p>
-
-<a href="{{ url_for('reservas.reservar') }}" class="btn-main">
-Agendar mi cita ahora 💅
-</a>
-
-<button onclick="enviarWhatsApp()" class="btn-main">
-Reservar por WhatsApp 💬
-</button>
-
-</div>
+    <div class="gallery-grid">
+        <img src="{{ url_for('static', filename='foto1.jpeg') }}">
+        <img src="{{ url_for('static', filename='foto2.jpeg') }}">
+        <img src="{{ url_for('static', filename='foto3.jpeg') }}">
+        <img src="{{ url_for('static', filename='foto4.jpeg') }}">
+        <img src="{{ url_for('static', filename='foto5.jpeg') }}">
+        <img src="{{ url_for('static', filename='foto6.jpeg') }}">
+        <img src="{{ url_for('static', filename='foto7.jpeg') }}">
+        <img src="{{ url_for('static', filename='foto8.jpeg') }}">
+    </div>
+</section>
 
 {% endblock %}
