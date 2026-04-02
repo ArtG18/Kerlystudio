@@ -38,6 +38,15 @@ def create_app():
         return dict(logged_user=current_user())
 
     # =========================
+    # WHATSAPP
+    # =========================
+    @app.context_processor
+    def inject_config():
+        return dict(
+            whatsapp_numero="56959257968"
+        )
+
+    # =========================
     # ERROR HANDLER
     # =========================
     @app.errorhandler(500)
