@@ -138,7 +138,7 @@ window.open(url, "_blank");
 /* CONFIRMAR CITA */
 function confirmarCita(nombre, servicio, fecha, hora) {
 
-let numero = "{{ get_config('whatsapp_numero') }}";
+let numero = "{{ whatsapp_numero }}";
 
 let mensaje = "Hola " + nombre + " 😊\n\n";
 mensaje += "✨ Tu cita ha sido CONFIRMADA:\n\n";
@@ -155,7 +155,7 @@ window.open(url, "_blank");
 /* RECORDATORIO */
 function recordatorio(nombre, fecha, hora){
 
-let numero = "{{ get_config('whatsapp_numero') }}";
+let numero = "{{ whatsapp_numero }}";
 
 let mensaje = "Hola " + nombre + " 😊\n\n";
 mensaje += "⏰ Te recordamos tu cita:\n\n";
