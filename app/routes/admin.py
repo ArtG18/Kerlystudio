@@ -1,30 +1,56 @@
-{% extends "base.html" %}
-{% block content %}
+from flask import Blueprint, render_template, session, redirect, url_for
+from app.db import fetch_all, fetch_one
 
-<h2 class="mb-4">Dashboard 💅</h2>
+admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
 
-<div class="row text-center">
 
-<div class="col-md-3">
-<h4>💸 ${{ stats.ingresos_hoy }}</h4>
-<p>Hoy</p>
-</div>
+def admin_required():
+    def wrapper(func):
+        def inner(*args, **kwargs):
+            if not session.get("user_id"):
+                return redirect(url_for("auth.login"))
 
-<div class="col-md-3">
-<h4>{{ stats.citas_hoy }}</h4>
-<p>Citas hoy</p>
-</div>
+            if session.get("rol") != "admin":
+                return redirect(url_for("public.home"))
 
-<div class="col-md-3">
-<h4>{{ stats.pendientes }}</h4>
-<p>Pendientes</p>
-</div>
+            return func(*args, **kwargs)
+        inner.__name__ = func.__name__
+        return inner
+    return wrapper
 
-<div class="col-md-3">
-<h4>{{ stats.confirmadas }}</h4>
-<p>Confirmadas</p>
-</div>
 
-</div>
+@admin_bp.route("/")
+@admin_required()
+def dashboard():
 
-{% endblock %}
+    stats = fetch_one("""
+        SELECT
+            COUNT(DISTINCT c.id) FILTER (WHERE c.fecha = CURRENT_DATE) AS citas_hoy,
+            COUNT(DISTINCT c.id) FILTER (WHERE c.estado = 'pendiente') AS pendientes,
+            COUNT(DISTINCT c.id) FILTER (WHERE c.estado = 'confirmada') AS confirmadas,
+            COALESCE(SUM(s.precio) FILTER (
+                WHERE c.estado = 'completada' AND c.fecha = CURRENT_DATE
+            ), 0) AS ingresos_hoy
+        FROM citas c
+        LEFT JOIN cita_servicios cs ON cs.cita_id = c.id
+        LEFT JOIN servicios s ON s.id = cs.servicio_id
+    """)
+
+    citas = fetch_all("""
+        SELECT
+            c.id,
+            c.fecha,
+            c.hora_inicio,
+            c.estado,
+            u.nombre AS cliente_nombre,
+            COALESCE(STRING_AGG(s.nombre, ', '), '') AS servicios
+        FROM citas c
+        JOIN usuarios u ON u.id = c.cliente_id
+        LEFT JOIN cita_servicios cs ON cs.cita_id = c.id
+        LEFT JOIN servicios s ON s.id = cs.servicio_id
+        GROUP BY c.id, u.nombre
+        ORDER BY c.fecha ASC, c.hora_inicio ASC
+        LIMIT 10
+    """)
+
+    return render_template("dashboard.html", stats=stats, citas=citas)
