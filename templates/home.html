@@ -1,192 +1,68 @@
 {% extends "base.html" %}
 {% block content %}
 
-<style>
-.hero {
-    min-height: 75vh;
-    background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)),
-                url("{{ url_for('static', filename='portada.jpeg') }}") center/cover no-repeat;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    color: white;
-    border-radius: 20px;
-    padding: 40px 20px;
-}
-
-.hero h1 {
-    font-size: 3rem;
-    font-weight: 700;
-}
-
-.hero p {
-    margin-top: 10px;
-    font-size: 1.05rem;
-}
-
-.btn-main {
-    background: linear-gradient(135deg, #ff4d94, #e60073);
-    color: white;
-    padding: 12px 35px;
-    border-radius: 40px;
-    text-decoration: none;
-}
-
-/* GALERÍA */
-.scroll-gallery {
-    display: flex;
-    gap: 15px;
-    overflow-x: auto;
-    padding: 10px;
-    scroll-snap-type: x mandatory;
-}
-
-.scroll-gallery::-webkit-scrollbar {
-    display: none;
-}
-
-.scroll-gallery img {
-    width: 220px;
-    height: 300px;
-    object-fit: cover;
-    border-radius: 18px;
-    flex-shrink: 0;
-    scroll-snap-align: center;
-    cursor: pointer;
-    transition: 0.3s;
-}
-
-.scroll-gallery img:hover {
-    transform: scale(1.05);
-}
-
-/* FULLSCREEN */
-.fullscreen {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0,0,0,0.95);
-    justify-content: center;
-    align-items: center;
-    z-index: 9999;
-}
-
-.fullscreen img {
-    max-width: 90%;
-    max-height: 90%;
-    border-radius: 10px;
-}
-
-.fullscreen.active {
-    display: flex;
-}
-
-/* ABOUT SALÓN */
-.about-card {
-    background: white;
-    border-radius: 20px;
-    padding: 22px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.05);
-    text-align: center;
-}
-
-.about-card h3 {
-    font-weight: 700;
-    margin-bottom: 12px;
-}
-
-.about-card p {
-    color: #555;
-    font-size: 0.95rem;
-    margin-bottom: 8px;
-}
-
-/* MOBILE */
-@media (max-width: 768px) {
-    .hero h1 {
-        font-size: 2.2rem;
-    }
-
-    .scroll-gallery img {
-        width: 160px;
-        height: 220px;
-    }
-}
-</style>
-
 <!-- HERO -->
-<div class="hero mb-5">
-    <div>
-        <h1>Kerly Studio</h1>
-        <p>
-            Diseños únicos, cuidado profesional ✨<br>
-            Agenda tu cita en segundos
-        </p>
+<div class="hero">
+<div class="hero-content">
 
-        {% if logged_user and logged_user.rol == 'admin' %}
-            <a href="{{ url_for('admin_dashboard') }}" class="btn-main mt-3">
-                Panel
-            </a>
-        {% else %}
-            <a href="{{ url_for('reservar') }}" class="btn-main mt-3">
-                Reservar ahora
-            </a>
-        {% endif %}
-    </div>
+<h1>Uñas perfectas 💅</h1>
+
+<p>Resultados que elevan tu estilo</p>
+
+<p style="color:#ff4d94;">
+⚡ Últimos cupos disponibles esta semana
+</p>
+
+<a href="{{ url_for('reservas.reservar') }}" class="btn-main">
+Agendar ahora 💅
+</a>
+
+<button onclick="enviarWhatsApp()" class="btn-main">
+WhatsApp rápido 💬
+</button>
+
+</div>
+</div>
+
+<!-- SERVICIOS -->
+<div class="section">
+<h2>Servicios</h2>
+
+{% for s in servicios %}
+<p>{{ s.nombre }} - ${{ s.precio }}</p>
+{% endfor %}
+
 </div>
 
 <!-- GALERÍA -->
-<div class="container my-5">
-    <h3 class="text-center mb-3">Nuestros Trabajos ✨</h3>
+<div class="section">
+<h2>Trabajos</h2>
 
-    <div class="scroll-gallery">
-        <img src="{{ url_for('static', filename='foto1.jpeg') }}" onclick="openImage(this.src)">
-        <img src="{{ url_for('static', filename='foto2.jpeg') }}" onclick="openImage(this.src)">
-        <img src="{{ url_for('static', filename='foto3.jpeg') }}" onclick="openImage(this.src)">
-        <img src="{{ url_for('static', filename='foto1.jpeg') }}" onclick="openImage(this.src)">
-        <img src="{{ url_for('static', filename='foto2.jpeg') }}" onclick="openImage(this.src)">
-    </div>
+<div class="gallery">
+<img src="/static/foto1.jpeg">
+<img src="/static/foto2.jpeg">
+<img src="/static/foto3.jpeg">
 </div>
 
-<!-- ABOUT SALÓN -->
-<div class="container my-5">
-    <div class="about-card">
-
-        <h3>Sobre nuestro salón 💅</h3>
-
-        <p>
-            En Kerly Studio nos especializamos en el cuidado y diseño de uñas, ofreciendo un servicio profesional y personalizado.
-        </p>
-
-        <p>
-            Trabajamos con productos de alta calidad y técnicas modernas para garantizar resultados duraderos y estéticos.
-        </p>
-
-        <p>
-            Nuestro enfoque es brindarte una experiencia cómoda, segura y enfocada en resaltar tu estilo.
-        </p>
-
-    </div>
 </div>
 
-<!-- FULLSCREEN -->
-<div id="fullscreenViewer" class="fullscreen" onclick="closeImage()">
-    <img id="fullscreenImg">
+<!-- CTA FINAL -->
+<div class="section">
+
+<h2>No esperes más</h2>
+
+<p style="color:#ff4d94;">
+⏳ Los cupos se llenan rápido
+</p>
+
+<a href="{{ url_for('reservas.reservar') }}" class="btn-main">
+Agendar mi cita ahora 💅
+</a>
+
+<button onclick="enviarWhatsApp()" class="btn-main">
+Reservar por WhatsApp 💬
+</button>
+
 </div>
-
-<script>
-function openImage(src) {
-    document.getElementById("fullscreenImg").src = src;
-    document.getElementById("fullscreenViewer").classList.add("active");
-}
-
-function closeImage() {
-    document.getElementById("fullscreenViewer").classList.remove("active");
-}
-</script>
 
 {% endblock %}

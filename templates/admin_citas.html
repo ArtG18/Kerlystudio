@@ -63,6 +63,16 @@
     <button class="btn btn-danger btn-sm">✖</button>
 </form>
 
+<!-- 💬 CONFIRMAR POR WHATSAPP -->
+<button onclick="confirmarCita(
+'{{ c.cliente_nombre }}',
+'{{ c.servicios }}',
+'{{ c.fecha }}',
+'{{ c.hora_inicio }}'
+)" class="btn btn-success btn-sm">
+💬 Confirmar
+</button>
+
 {% endif %}
 
 {% if c.estado == 'confirmada' %}
@@ -74,6 +84,15 @@
 <form method="POST" action="/admin/citas/{{ c.id }}/cancelada_admin" style="display:inline;">
     <button class="btn btn-danger btn-sm">✖ Cancelar</button>
 </form>
+
+<!-- ⏰ RECORDATORIO -->
+<button onclick="recordatorio(
+'{{ c.cliente_nombre }}',
+'{{ c.fecha }}',
+'{{ c.hora_inicio }}'
+)" class="btn btn-warning btn-sm">
+⏰ Recordar
+</button>
 
 {% endif %}
 
