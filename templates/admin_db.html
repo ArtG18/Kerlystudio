@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin | Kerly Nails Studio</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root { --beige: #F5F5F0; --gold: #D4A373; --dark: #1A1A1A; --white: #FFFFFF; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Montserrat', sans-serif; background-color: var(--beige); color: var(--dark); }
+        
+        nav { background: var(--dark); color: white; padding: 15px 40px; display: flex; justify-content: space-between; align-items: center; }
+        .logo-admin { font-family: 'Playfair Display', serif; font-size: 1.4rem; letter-spacing: 1px; }
+        .btn-logout { color: white; text-decoration: none; font-size: 0.8rem; border: 1px solid rgba(255,255,255,0.3); padding: 8px 15px; border-radius: 5px; }
+
+        .container { max-width: 1200px; margin: 40px auto; padding: 0 20px; }
+        .grid { display: grid; grid-template-columns: 1.5fr 1fr; gap: 30px; }
+        @media (max-width: 1000px) { .grid { grid-template-columns: 1fr; } }
+
+        .card { background: var(--white); padding: 30px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.03); margin-bottom: 30px; }
+        .card-title { font-family: 'Playfair Display', serif; font-size: 1.6rem; margin-bottom: 25px; border-bottom: 2px solid var(--beige); padding-bottom: 10px; }
+
+        /* Estilos Tabla Citas */
+        table { width: 100%; border-collapse: collapse; }
+        th { text-align: left; padding: 12px; color: var(--gold); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid #eee; }
+        td { padding: 15px; border-bottom: 1px solid #f9f9f9; font-size: 0.85rem; }
+        .badge { padding: 4px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; }
+        .pendiente { background: #FFF9E6; color: #D4A017; }
+        .confirmada { background: #E6F9ED; color: #27AE60; }
+
+        /* Estilos Editor Servicios */
+        .service-form { background: #FAFAFA; padding: 20px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #EEE; }
+        label { font-size: 0.65rem; font-weight: 700; color: var(--gold); text-transform: uppercase; display: block; margin-bottom: 5px; }
+        .input-luxe { width: 100%; padding: 10px; border: 1px solid #DDD; border-radius: 6px; font-family: inherit; margin-bottom: 12px; font-size: 0.85rem; }
+        .btn-update { background: var(--dark); color: white; border: none; padding: 12px; border-radius: 6px; width: 100%; cursor: pointer; font-weight: 600; transition: 0.3s; }
+        .btn-update:hover { background: var(--gold); }
+        
+        .alert { padding: 15px; background: #D4A373; color: white; border-radius: 8px; margin-bottom: 20px; font-size: 0.9rem; }
+    </style>
+</head>
+<body>
+
+<nav>
+    <div class="logo-admin">KERLY STUDIO <small style="font-weight:300">ADMIN</small></div>
+    <a href="/logout" class="btn-logout">Cerrar Sesión</a>
+</nav>
+
+<div class="container">
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}{% for m in messages %}<div class="alert">{{ m }}</div>{% endfor %}{% endif %}
+    {% endwith %}
+
+    <div class="grid">
+        <div class="card">
+            <h2 class="card-title">Gestión de Citas</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Cliente</th>
+                        <th>Servicio</th>
+                        <th>Fecha/Hora</th>
+                        <th>Estado</th>
+                        <th>Acción</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for c in citas %}
+                    <tr>
+                        <td><strong>{{ c.nombre }}</strong><br><small>{{ c.telefono }}</small></td>
+                        <td>{{ c.servicio }}</td>
+                        <td>{{ c.fecha }}<br><span style="color:var(--gold)">{{ c.hora }}</span></td>
+                        <td><span class="badge {{ c.estado }}">{{ c.estado }}</span></td>
+                        <td>
+                            <a href="/admin/update_cita/{{ c.id }}/confirmada" style="color:var(--gold); text-decoration:none; font-size:0.7rem; font-weight:700">CONFIRMAR</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="card">
+            <h2 class="card-title">Editar Catálogo</h2>
+            {% for s in servicios %}
+            <form action="/admin/update_servicio" method="POST" class="service-form">
+                <input type="hidden" name="id" value="{{ s.id }}">
+                
+                <label>Nombre del Servicio</label>
+                <input type="text" name="nombre" value="{{ s.nombre }}" class="input-luxe">
+                
+                <label>Descripción Corta</label>
+                <textarea name="descripcion" class="input-luxe" rows="2">{{ s.descripcion }}</textarea>
+                
+                <div style="display:grid; grid-template-columns: 1fr 2fr; gap:10px">
+                    <div>
+                        <label>Precio ($)</label>
+                        <input type="number" name="precio" value="{{ s.precio }}" class="input-luxe">
+                    </div>
+                    <div>
+                        <label>URL Imagen (ImgBB/Link)</label>
+                        <input type="text" name="imagen_url" value="{{ s.imagen_url }}" class="input-luxe">
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn-update">Actualizar {{ s.nombre }}</button>
+            </form>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

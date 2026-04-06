@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kerly Nails Studio</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --bg: #fdfcfb; /* Crema muy suave */
+            --primary: #1a1a1a; /* Negro suave */
+            --gold: #d4a373; /* Dorado */
+            --white: #ffffff;
+            --text-muted: #777;
+            --shadow: 0 15px 40px rgba(0,0,0,0.06);
+            --radius: 20px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg);
+            color: var(--primary);
+            line-height: 1.6;
+        }
+
+        /* NAVBAR TIPO BOUTIQUE (Cristal) */
+        .navbar {
+            background: rgba(253, 252, 251, 0.85);
+            backdrop-filter: blur(12px);
+            position: fixed; top: 0; width: 100%;
+            padding: 1.3rem 5%;
+            display: flex; justify-content: space-between; align-items: center;
+            z-index: 1000;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+        }
+
+        .logo {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.8rem;
+            text-decoration: none;
+            color: var(--primary);
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+        .logo span { color: var(--gold); }
+
+        .nav-links { display: flex; gap: 20px; align-items: center; }
+        .nav-links a {
+            text-decoration: none;
+            color: var(--primary);
+            font-size: 0.9rem; font-weight: 500;
+            transition: 0.3s;
+        }
+        .nav-links a:hover { color: var(--gold); }
+
+        .btn-reservation {
+            background: var(--primary); color: white;
+            padding: 12px 30px; border-radius: 50px;
+            font-size: 0.85rem; text-transform: uppercase;
+            font-weight: 600; text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        .btn-reservation:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+        }
+
+        /* CONTENEDOR PRINCIPAL CON ESPACIO */
+        .main-container {
+            max-width: 1100px;
+            margin: 120px auto 60px; /* Margen para el navbar fijo */
+            padding: 0 20px;
+        }
+
+        /* FOOTER ELEGANTE */
+        footer {
+            text-align: center;
+            padding: 60px;
+            background: #fafafa;
+            border-top: 1px solid rgba(0,0,0,0.05);
+            color: var(--text-muted);
+        }
+
+        /* WHATSAPP FLOTANTE */
+        .whatsapp-btn {
+            position: fixed; bottom: 30px; right: 30px;
+            background: #25D366; color: white;
+            width: 60px; height: 60px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            text-decoration: none; font-size: 1.6rem;
+            box-shadow: 0 10px 25px rgba(37, 211, 102, 0.3);
+            z-index: 1000; transition: 0.3s;
+        }
+        .whatsapp-btn:hover { transform: scale(1.1); }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar">
+        <a href="/" class="logo">LUXE<span>STUDIO</span></a>
+        <div class="nav-links">
+            <a href="#servicios">Servicios</a>
+            <a href="/login">Iniciar Sesión</a>
+            <a href="/reservar" class="btn-reservation">Reservar Cita</a>
+        </div>
+    </nav>
+
+    <div class="main-container">
+        {% block content %}{% endblock %}
+    </div>
+
+    <footer>
+        <p>&copy; 2024 Luxe Nails Studio. Todos los derechos reservados.</p>
+        <small style="margin-top:10px; display:block; text-transform: uppercase; letter-spacing: 2px;">Arte en tus manos</small>
+    </footer>
+
+    <a href="https://wa.me/{{ whatsapp_numero|default('56912345678') }}" class="whatsapp-btn" target="_blank">
+        <i class="fab fa-whatsapp"></i>
+    </a>
+
+</body>
+</html>
