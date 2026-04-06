@@ -2,114 +2,119 @@
 {% block content %}
 
 <style>
+/* GRID PRINCIPAL */
+.catalog-container {
+    max-width: 1100px;
+    margin: auto;
+    padding: 20px;
+}
 
-/* HEADER */
 .catalog-header {
     text-align: center;
     margin-bottom: 30px;
 }
 
-.catalog-title {
+.catalog-header h1 {
     font-size: 2.2rem;
     font-weight: 700;
 }
 
-.catalog-sub {
-    color: #777;
+.catalog-header p {
+    color: #555;
+    font-size: 0.95rem;
+    margin-top: 8px;
 }
 
-/* GRID */
+/* GRID DE SERVICIOS */
 .services-grid {
     display: grid;
-    gap: 20px;
+    grid-template-columns: repeat(auto-fit,minmax(250px,1fr));
+    gap: 25px;
 }
 
-/* CATEGORIA */
-.category-title {
-    margin-top: 20px;
-    font-weight: 700;
-    font-size: 1.2rem;
-}
-
-/* CARD */
+/* CARD DE SERVICIO */
 .service-card {
-    background: white;
     border-radius: 20px;
     overflow: hidden;
-    box-shadow: 0 12px 30px rgba(0,0,0,0.07);
-    transition: 0.3s;
+    background: white;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.06);
+    transition: transform 0.3s, box-shadow 0.3s;
     cursor: pointer;
-    position: relative;
+    display: flex;
+    flex-direction: column;
 }
 
 .service-card:hover {
     transform: translateY(-5px);
+    box-shadow: 0 20px 50px rgba(0,0,0,0.12);
 }
 
-.service-card.selected {
-    border: 2px solid #ff4d94;
-    box-shadow: 0 0 0 3px rgba(255,77,148,0.15);
-}
-
-/* IMAGE */
 .service-card img {
     width: 100%;
-    height: 160px;
+    height: 180px;
     object-fit: cover;
 }
 
-/* CONTENT */
 .service-content {
     padding: 15px;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
 }
 
 .service-name {
     font-weight: 600;
-    font-size: 1rem;
+    font-size: 1.05rem;
 }
 
-.service-meta {
+.service-desc {
     font-size: 0.85rem;
     color: #777;
-    margin-top: 5px;
+    margin: 8px 0;
 }
 
-/* PRICE */
-.price {
-    font-size: 1.2rem;
-    font-weight: 700;
-    color: #ff4d94;
+.service-price {
+    font-weight: bold;
+    color: #ff0066;
+    font-size: 1.1rem;
 }
 
-/* BADGE */
-.badge {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    background: #ff4d94;
+/* BOTÓN AGREGAR */
+.btn-add {
+    margin-top: 10px;
+    padding: 10px 0;
+    text-align: center;
+    border-radius: 25px;
+    background: linear-gradient(45deg,#ff4d94,#ff0066);
     color: white;
-    padding: 4px 10px;
-    font-size: 0.7rem;
-    border-radius: 20px;
+    font-weight: 500;
+    transition: 0.2s;
+    text-decoration: none;
 }
 
-/* CART FLOAT */
+.btn-add:hover {
+    transform: scale(1.05);
+}
+
+/* CARRITO FLOTANTE */
 .cart-bar {
     position: fixed;
     bottom: 0;
     left: 0;
     width: 100%;
-    background: linear-gradient(90deg,#ff4d94,#ff0066);
-    padding: 15px;
+    background: linear-gradient(90deg,#ff0066,#ff4d94);
+    padding: 18px;
     display: flex;
     justify-content: space-between;
     align-items: center;
     color: white;
-    box-shadow: 0 -5px 20px rgba(0,0,0,0.15);
+    box-shadow: 0 -8px 30px rgba(0,0,0,0.2);
+    z-index: 999;
 }
 
 .cart-info {
-    font-size: 0.9rem;
+    font-size: 0.95rem;
 }
 
 .cart-total {
@@ -120,116 +125,85 @@
     background: white;
     color: #ff0066;
     border: none;
-    padding: 10px 18px;
-    border-radius: 25px;
+    padding: 12px 22px;
+    border-radius: 30px;
     font-weight: 600;
 }
 
-/* ANIMATION */
-.fade-in {
-    animation: fadeIn 0.5s ease;
+.btn-cart:hover {
+    transform: scale(1.05);
 }
-
-@keyframes fadeIn {
-    from {opacity:0; transform: translateY(10px);}
-    to {opacity:1; transform: translateY(0);}
-}
-
 </style>
 
-<div class="catalog-header fade-in">
-    <h1 class="catalog-title">Elige tus servicios</h1>
-    <p class="catalog-sub">Combina tratamientos y crea tu experiencia ✨</p>
-</div>
+<div class="catalog-container">
+    <div class="catalog-header">
+        <h1>Catálogo de servicios</h1>
+        <p>Selecciona los servicios que deseas y arma tu experiencia</p>
+    </div>
 
-<div class="services-grid fade-in">
+    <div class="services-grid">
+    {% for categoria, servicios in servicios_agrupados.items() %}
+        <div style="grid-column:1/-1;font-weight:600;font-size:1.2rem;margin-top:20px;">{{ categoria }}</div>
 
-{% for categoria, servicios in servicios_agrupados.items() %}
-    <div class="category-title">{{ categoria }}</div>
-
-    {% for servicio in servicios %}
-    <div class="service-card" onclick="toggleServicio({{ servicio.id }}, {{ servicio.precio }}, this)">
-
-        <div class="badge">Top</div>
-
-        <img src="{{ url_for('static', filename='servicios/' ~ (servicio.imagen if servicio.imagen else 'default.jpg')) }}">
-
-        <div class="service-content">
-            <div class="service-name">{{ servicio.nombre }}</div>
-            <div class="service-meta">
-                {{ servicio.duracion_min }} min
-            </div>
-
-            <div class="price">
-                ${{ servicio.precio }}
+        {% for s in servicios %}
+        <div class="service-card" onclick="toggleServicio({{ s.id }}, {{ s.precio }}, this)">
+            <img src="{{ url_for('static', filename='servicios/' ~ (s.imagen if s.imagen else 'default.jpg')) }}">
+            <div class="service-content">
+                <div>
+                    <div class="service-name">{{ s.nombre }}</div>
+                    <div class="service-desc">{{ s.descripcion }}</div>
+                </div>
+                <div class="service-price">${{ s.precio }}</div>
+                <a href="javascript:void(0)" class="btn-add">Agregar</a>
             </div>
         </div>
-
-    </div>
+        {% endfor %}
     {% endfor %}
-{% endfor %}
-
+    </div>
 </div>
 
-<!-- CARRITO -->
 <div class="cart-bar" id="cartBar" style="display:none;">
     <div class="cart-info">
-        <span id="count">0</span> servicios • 
-        <span class="cart-total">$<span id="total">0</span></span>
+        <span id="count">0</span> servicios • Total: $<span id="total">0</span>
     </div>
-
-    <button class="btn-cart" onclick="irReservar()">
-        Continuar →
-    </button>
+    <button class="btn-cart" onclick="irReservar()">Reservar ahora</button>
 </div>
 
 <script>
-
 let seleccionados = [];
 let total = 0;
 
 function toggleServicio(id, precio, el) {
-
-    if (seleccionados.find(s => s.id === id)) {
-
-        seleccionados = seleccionados.filter(s => s.id !== id);
+    const index = seleccionados.findIndex(s => s.id===id);
+    if(index > -1){
+        // quitar
+        seleccionados.splice(index,1);
         total -= precio;
         el.classList.remove("selected");
-
     } else {
-
         seleccionados.push({id, precio});
         total += precio;
         el.classList.add("selected");
     }
-
     actualizarCarrito();
 }
 
 function actualizarCarrito() {
-
-    if (seleccionados.length > 0) {
-        document.getElementById("cartBar").style.display = "flex";
+    const cart = document.getElementById("cartBar");
+    if(seleccionados.length > 0){
+        cart.style.display = "flex";
     } else {
-        document.getElementById("cartBar").style.display = "none";
+        cart.style.display = "none";
     }
-
     document.getElementById("count").innerText = seleccionados.length;
     document.getElementById("total").innerText = total;
 }
 
-function irReservar() {
-
-    let ids = seleccionados.map(s => s.id);
-
-    if (ids.length === 0) {
-        alert("Selecciona al menos un servicio");
-        return;
-    }
-
+function irReservar(){
+    if(seleccionados.length===0){ alert("Selecciona al menos un servicio"); return; }
+    const ids = seleccionados.map(s=>s.id);
     window.location.href = "/reservar?servicios=" + ids.join(",");
 }
-
 </script>
 
 {% endblock %}

@@ -1,49 +1,36 @@
 {% extends "base.html" %}
 {% block content %}
 
-<!-- HERO -->
-<section class="hero">
-    <h1>Uñas perfectas</h1>
-    <p>Diseños profesionales que elevan tu estilo</p>
+<div class="hero container">
+    <div>
+        <h1>Manos que hablan por ti</h1>
+        <p>Diseño, precisión y estilo en cada detalle</p>
 
-    <div class="hero-buttons">
-        <a href="/reservar" class="btn btn-primary">Agendar cita</a>
-        <a href="https://wa.me/{{ whatsapp_numero }}" class="btn btn-outline">WhatsApp</a>
+        <a href="/catalogo" class="btn">Ver servicios</a>
     </div>
-</section>
+</div>
 
-<!-- SERVICIOS -->
-<section class="services">
-    <h2>Servicios</h2>
+<div class="container">
 
-    <div class="services-grid">
-        {% for s in servicios %}
-        <div class="service-card">
-            <h3>{{ s.nombre }}</h3>
-            <div class="price">${{ s.precio }}</div>
+<h2 style="margin-bottom:20px;">Servicios</h2>
 
-            <a href="/reservar?servicio={{ s.id }}" class="btn btn-primary">
-                Reservar
-            </a>
-        </div>
-        {% endfor %}
+<div class="grid" style="grid-template-columns: repeat(auto-fit,minmax(250px,1fr));">
+
+{% for s in servicios %}
+<div class="service-card">
+
+    <img src="{{ url_for('static', filename='servicios/' ~ (s.imagen if s.imagen else 'default.jpg')) }}">
+
+    <div class="service-content">
+        <div class="service-name">{{ s.nombre }}</div>
+        <div class="price">${{ s.precio }}</div>
     </div>
-</section>
 
-<!-- GALERÍA -->
-<section class="gallery">
-    <h2>Trabajos</h2>
+</div>
+{% endfor %}
 
-    <div class="gallery-grid">
-        <img src="{{ url_for('static', filename='foto1.jpeg') }}">
-        <img src="{{ url_for('static', filename='foto2.jpeg') }}">
-        <img src="{{ url_for('static', filename='foto3.jpeg') }}">
-        <img src="{{ url_for('static', filename='foto4.jpeg') }}">
-        <img src="{{ url_for('static', filename='foto5.jpeg') }}">
-        <img src="{{ url_for('static', filename='foto6.jpeg') }}">
-        <img src="{{ url_for('static', filename='foto7.jpeg') }}">
-        <img src="{{ url_for('static', filename='foto8.jpeg') }}">
-    </div>
-</section>
+</div>
+
+</div>
 
 {% endblock %}

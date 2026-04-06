@@ -2,261 +2,175 @@
 {% block content %}
 
 <style>
-.container {
-    max-width: 520px;
-    margin: auto;
-    padding: 20px;
-}
+    :root { --accent: #ff4d94; --bg-card: #ffffff; }
 
-/* STEPS */
-.step {
-    display: none;
-    animation: fade 0.4s ease;
-}
+    .reservation-wizard { max-width: 700px; margin: 40px auto; }
+    
+    /* Pasos del Wizard */
+    .step-container { display: none; animation: fadeIn 0.4s ease; }
+    .step-container.active { display: block; }
+    
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-.step.active {
-    display: block;
-}
+    /* Tarjetas de Selección */
+    .selection-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-top: 20px; }
+    
+    .selectable-card {
+        background: white;
+        border: 2px solid #eee;
+        border-radius: 15px;
+        padding: 20px;
+        text-align: center;
+        cursor: pointer;
+        transition: 0.3s;
+    }
 
-@keyframes fade {
-    from {opacity:0; transform:translateY(20px);}
-    to {opacity:1; transform:translateY(0);}
-}
+    .selectable-card:hover { border-color: var(--accent); background: #fff9fb; }
+    .selectable-card.selected { border-color: var(--accent); background: var(--accent); color: white; }
 
-/* CARD */
-.card {
-    background: white;
-    padding: 20px;
-    border-radius: 20px;
-    margin-bottom: 15px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.05);
-}
+    /* Horas */
+    .time-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: 10px; }
+    .time-slot {
+        padding: 10px;
+        border-radius: 10px;
+        background: #f8f9fa;
+        border: 1px solid #ddd;
+        text-align: center;
+        cursor: pointer;
+        font-weight: 500;
+    }
+    .time-slot:hover { border-color: var(--accent); color: var(--accent); }
+    .time-slot.selected { background: var(--accent); color: white; border-color: var(--accent); }
+    .time-slot.disabled { opacity: 0.4; cursor: not-allowed; background: #eee; text-decoration: line-through; }
 
-/* TITLES */
-h3 {
-    margin-bottom: 15px;
-}
-
-/* GRID */
-.grid {
-    display: grid;
-    gap: 10px;
-}
-
-/* SERVICE */
-.service {
-    padding: 12px;
-    border: 1px solid #eee;
-    border-radius: 12px;
-    cursor: pointer;
-}
-
-.service.active {
-    background: #ff4d94;
-    color: white;
-}
-
-/* MANICURISTA */
-.mani {
-    padding: 12px;
-    border: 1px solid #eee;
-    border-radius: 12px;
-    text-align: center;
-    cursor: pointer;
-}
-
-.mani.active {
-    background: #ff4d94;
-    color: white;
-}
-
-/* HORAS */
-.hora {
-    padding: 10px;
-    border: 1px solid #eee;
-    border-radius: 10px;
-    text-align: center;
-    cursor: pointer;
-}
-
-.hora.active {
-    background: #ff4d94;
-    color: white;
-}
-
-/* BUTTON */
-.btn-main {
-    width: 100%;
-    padding: 14px;
-    border-radius: 30px;
-    background: linear-gradient(45deg,#ff4d94,#ff0066);
-    color: white;
-    border: none;
-    cursor: pointer;
-}
-
-/* RESUMEN */
-.resumen {
-    background: #fff0f6;
-    padding: 15px;
-    border-radius: 15px;
-    margin-bottom: 15px;
-}
+    .wizard-footer { margin-top: 40px; padding-top: 20px; border-top: 1px solid #eee; display: flex; justify-content: space-between; }
 </style>
 
-<div class="container">
+<div class="reservation-wizard">
+    <form id="reservaForm" method="POST">
+        
+        <div class="step-container active" id="step1">
+            <h2 class="fw-bold mb-4">1. Elige tus servicios ✨</h2>
+            {% for categoria, lista in servicios_agrupados.items() %}
+                <h5 class="text-muted mt-4 mb-3">{{ categoria }}</h5>
+                <div class="list-group shadow-sm">
+                    {% for s in lista %}
+                    <label class="list-group-item d-flex justify-content-between align-items-center p-3">
+                        <div>
+                            <input class="form-check-input me-2 checkbox-servicio" type="checkbox" name="servicios" value="{{ s.id }}" data-nombre="{{ s.nombre }}">
+                            {{ s.nombre }}
+                        </div>
+                        <span class="badge rounded-pill bg-light text-dark">${{ s.precio }}</span>
+                    </label>
+                    {% endfor %}
+                </div>
+            {% endfor %}
+            <div class="wizard-footer">
+                <span></span>
+                <button type="button" class="btn btn-dark px-4" onclick="nextStep(2)">Siguiente</button>
+            </div>
+        </div>
 
-<form method="POST" id="form">
+        <div class="step-container" id="step2">
+            <h2 class="fw-bold mb-4">2. Profesional y Día 📅</h2>
+            <label class="form-label text-muted">¿Quién quieres que te atienda?</label>
+            <select name="manicurista_id" id="manicurista_id" class="form-select form-select-lg mb-4" onchange="resetHoras()">
+                <option value="">Selecciona una profesional</option>
+                {% for m in manicuristas %}
+                    <option value="{{ m.id }}">{{ m.nombre }}</option>
+                {% endfor %}
+            </select>
 
-<!-- STEP 1 -->
-<div class="step active" id="step1">
-<div class="card">
-<h3>Selecciona servicio</h3>
+            <label class="form-label text-muted">¿Qué día prefieres?</label>
+            <input type="date" name="fecha" id="fecha" class="form-control form-control-lg mb-4" 
+                   min="{{ today_date }}" onchange="fetchHoras()">
 
-<div class="grid">
-{% for s in servicios %}
-<div class="service" data-id="{{ s.id }}" data-nombre="{{ s.nombre }}" data-precio="{{ s.precio }}">
-{{ s.nombre }} - ${{ s.precio }}
-</div>
-{% endfor %}
-</div>
+            <div class="wizard-footer">
+                <button type="button" class="btn btn-outline-secondary" onclick="prevStep(1)">Atrás</button>
+                <button type="button" class="btn btn-dark px-4" onclick="nextStep(3)">Siguiente</button>
+            </div>
+        </div>
 
-<input type="hidden" name="servicio_id" id="servicio">
-</div>
-</div>
+        <div class="step-container" id="step3">
+            <h2 class="fw-bold mb-4">3. Selecciona la hora ⏰</h2>
+            <div id="horas-container" class="time-grid">
+                <p class="text-muted">Selecciona una fecha y profesional primero.</p>
+            </div>
+            <input type="hidden" name="hora" id="hora_seleccionada">
 
-<!-- STEP 2 -->
-<div class="step" id="step2">
-<div class="card">
-<h3>Profesional</h3>
+            <div class="wizard-footer">
+                <button type="button" class="btn btn-outline-secondary" onclick="prevStep(2)">Atrás</button>
+                <button type="button" class="btn btn-success px-5" onclick="submitFinal()">Reservar Cita ✨</button>
+            </div>
+        </div>
 
-<div class="grid">
-<div class="mani" data-id="1">Adri</div>
-<div class="mani" data-id="2">Kerly</div>
-<div class="mani" data-id="3">Josi</div>
-<div class="mani" data-id="4">Leonela</div>
-</div>
-
-<input type="hidden" name="manicurista_id" id="manicurista">
-</div>
-</div>
-
-<!-- STEP 3 -->
-<div class="step" id="step3">
-<div class="card">
-<h3>Fecha</h3>
-<input type="date" name="fecha" id="fecha" required>
-</div>
-</div>
-
-<!-- STEP 4 -->
-<div class="step" id="step4">
-<div class="card">
-<h3>Hora</h3>
-
-<div class="grid" id="horas"></div>
-
-<input type="hidden" name="hora_inicio" id="hora">
-</div>
-</div>
-
-<!-- STEP 5 -->
-<div class="step" id="step5">
-
-<div class="resumen" id="resumen"></div>
-
-<div class="card">
-<input type="text" name="nombre" placeholder="Nombre" required>
-<input type="text" name="telefono" placeholder="Teléfono" required>
-<input type="email" name="email" placeholder="Correo" required>
-</div>
-
-<button class="btn-main">Confirmar reserva</button>
-
-</div>
-
-</form>
-
+    </form>
 </div>
 
 <script>
-let currentStep = 1;
-const next = () => {
-    document.getElementById("step"+currentStep).classList.remove("active");
-    currentStep++;
-    document.getElementById("step"+currentStep).classList.add("active");
-    window.scrollTo({top:0, behavior:'smooth'});
-};
+    let currentStep = 1;
 
-/* SERVICIO */
-document.querySelectorAll(".service").forEach(el=>{
-    el.onclick=()=>{
-        document.querySelectorAll(".service").forEach(e=>e.classList.remove("active"));
-        el.classList.add("active");
+    function nextStep(step) {
+        if (step === 2 && document.querySelectorAll('.checkbox-servicio:checked').length === 0) {
+            return alert("Por favor, selecciona al menos un servicio.");
+        }
+        if (step === 3 && (!document.getElementById('fecha').value || !document.getElementById('manicurista_id').value)) {
+            return alert("Selecciona profesional y fecha.");
+        }
+        
+        document.getElementById(`step${currentStep}`).classList.remove('active');
+        document.getElementById(`step${step}`).classList.add('active');
+        currentStep = step;
+    }
 
-        document.getElementById("servicio").value = el.dataset.id;
-        window.servicioNombre = el.dataset.nombre;
-        window.servicioPrecio = el.dataset.precio;
+    function prevStep(step) {
+        document.getElementById(`step${currentStep}`).classList.remove('active');
+        document.getElementById(`step${step}`).classList.add('active');
+        currentStep = step;
+    }
 
-        next();
-    };
-});
+    function fetchHoras() {
+        const mId = document.getElementById('manicurista_id').value;
+        const fecha = document.getElementById('fecha').value;
+        const container = document.getElementById('horas-container');
 
-/* MANICURISTA */
-document.querySelectorAll(".mani").forEach(el=>{
-    el.onclick=()=>{
-        document.querySelectorAll(".mani").forEach(e=>e.classList.remove("active"));
-        el.classList.add("active");
+        if (!mId || !fecha) return;
 
-        document.getElementById("manicurista").value = el.dataset.id;
-        window.maniNombre = el.innerText;
+        container.innerHTML = '<div class="spinner-border text-pink" role="status"></div>';
 
-        next();
-    };
-});
+        fetch(`/api/horas-disponibles?manicurista_id=${mId}&fecha=${fecha}`)
+            .then(res => res.json())
+            .then(data => {
+                container.innerHTML = '';
+                if (data.disponibles.length === 0) {
+                    container.innerHTML = '<p class="text-danger col-12">No hay horarios disponibles para este día.</p>';
+                } else {
+                    data.disponibles.forEach(h => {
+                        const div = document.createElement('div');
+                        div.className = 'time-slot';
+                        div.innerText = h;
+                        div.onclick = () => {
+                            document.querySelectorAll('.time-slot').forEach(s => s.classList.remove('selected'));
+                            div.classList.add('selected');
+                            document.getElementById('hora_seleccionada').value = h;
+                        };
+                        container.appendChild(div);
+                    });
+                }
+            });
+    }
 
-/* FECHA */
-document.getElementById("fecha").addEventListener("change", ()=>{
-    next();
-    renderHoras();
-});
+    function resetHoras() {
+        document.getElementById('fecha').value = '';
+        document.getElementById('horas-container').innerHTML = '<p class="text-muted">Selecciona una fecha primero.</p>';
+    }
 
-/* HORAS */
-const horas = ["09:00","10:00","11:00","12:00","14:00","15:00","16:00","17:00"];
-
-function renderHoras(){
-    let cont = document.getElementById("horas");
-    cont.innerHTML="";
-
-    horas.forEach(h=>{
-        let div=document.createElement("div");
-        div.className="hora";
-        div.innerText=h;
-
-        div.onclick=()=>{
-            document.querySelectorAll(".hora").forEach(e=>e.classList.remove("active"));
-            div.classList.add("active");
-
-            document.getElementById("hora").value=h;
-
-            buildResumen();
-            next();
-        };
-
-        cont.appendChild(div);
-    });
-}
-
-/* RESUMEN */
-function buildResumen(){
-    document.getElementById("resumen").innerHTML = `
-        <strong>Servicio:</strong> ${window.servicioNombre}<br>
-        <strong>Profesional:</strong> ${window.maniNombre}<br>
-        <strong>Fecha:</strong> ${document.getElementById("fecha").value}<br>
-        <strong>Hora:</strong> ${document.getElementById("hora").value}<br>
-        <strong>Total:</strong> $${window.servicioPrecio}
-    `;
-}
+    function submitFinal() {
+        if (!document.getElementById('hora_seleccionada').value) {
+            return alert("Por favor, selecciona una hora.");
+        }
+        document.getElementById('reservaForm').submit();
+    }
 </script>
 
 {% endblock %}

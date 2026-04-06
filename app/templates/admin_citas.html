@@ -1,113 +1,151 @@
 {% extends "base.html" %}
 {% block content %}
 
-<h2 class="mb-4">Panel de Gestión 💅</h2>
+<style>
+    /* Estilos de lujo para los estados */
+    .badge-status {
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        display: inline-block;
+        text-align: center;
+    }
+    .status-pendiente { background: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
+    .status-confirmada { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+    .status-completada { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+    .status-cancelada { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
 
-<!-- 💸 INGRESOS -->
-<div class="mb-4">
-    <h4>💸 Hoy: ${{ ingresos_hoy.total if ingresos_hoy else 0 }}</h4>
-    <small class="text-muted">Ingresos de citas completadas hoy</small>
+    .table-container {
+        background: white;
+        border-radius: 20px;
+        padding: 25px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        margin-top: 20px;
+    }
+
+    .btn-action {
+        width: 35px;
+        height: 35px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 10px;
+        transition: 0.2s;
+        border: none;
+        margin: 0 2px;
+    }
+
+    .btn-whatsapp { background: #25D366; color: white; }
+    .btn-whatsapp:hover { background: #128C7E; color: white; transform: scale(1.1); }
+    
+    .btn-confirm { background: #e8f5e9; color: #2e7d32; }
+    .btn-confirm:hover { background: #2e7d32; color: white; }
+
+    .btn-done { background: #e3f2fd; color: #1565c0; }
+    .btn-done:hover { background: #1565c0; color: white; }
+</style>
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold">Gestión de Citas 💅</h2>
+            <p class="text-muted">Control total de la agenda y estados de servicios.</p>
+        </div>
+        <div class="text-end">
+            <h4 class="mb-0">Total Hoy: <strong>${{ ingresos_hoy.total if ingresos_hoy.total else 0 }}</strong></h4>
+            <small class="text-success">Ingresos por citas completadas</small>
+        </div>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} border-0 shadow-sm">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <div class="table-container">
+        <div class="table-responsive">
+            <table class="table align-middle">
+                <thead class="text-muted">
+                    <tr>
+                        <th>Cliente</th>
+                        <th>Servicios</th>
+                        <th>Fecha / Hora</th>
+                        <th>Manicurista</th>
+                        <th class="text-center">Estado</th>
+                        <th class="text-end">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for c in citas %}
+                    <tr>
+                        <td>
+                            <div class="fw-bold">{{ c.cliente_nombre }}</div>
+                            <small class="text-muted">{{ c.telefono }}</small>
+                        </td>
+                        <td>
+                            <div style="max-width: 200px;" class="text-truncate" title="{{ c.servicios }}">
+                                {{ c.servicios }}
+                            </div>
+                        </td>
+                        <td>
+                            <div>{{ c.fecha }}</div>
+                            <small class="fw-bold text-dark">{{ c.hora_inicio.strftime('%H:%M') if c.hora_inicio else '--:--' }}</small>
+                        </td>
+                        <td>{{ c.manicurista_nombre }}</td>
+                        <td class="text-center">
+                            {% set status_class = 'pendiente' %}
+                            {% if 'confirmada' in c.estado %}{% set status_class = 'confirmada' %}
+                            {% elif 'completada' in c.estado %}{% set status_class = 'completada' %}
+                            {% elif 'cancelada' in c.estado %}{% set status_class = 'cancelada' %}
+                            {% endif %}
+                            <span class="badge-status status-{{ status_class }}">
+                                {{ c.estado.replace('_', ' ').capitalize() }}
+                            </span>
+                        </td>
+                        <td class="text-end">
+                            <div class="d-flex justify-content-end">
+                                <button onclick="enviarWS('{{ c.telefono }}', '{{ c.cliente_nombre }}', '{{ c.fecha }}', '{{ c.hora_inicio.strftime('%H:%M') }}', '{{ c.servicios }}')" 
+                                        class="btn-action btn-whatsapp" title="Confirmar por WhatsApp">
+                                    <i class="fa-brands fa-whatsapp"></i>
+                                </button>
+
+                                {% if c.estado == 'pendiente' %}
+                                <form action="{{ url_for('admin.cambiar_estado_cita', cita_id=c.id, nuevo_estado='confirmada') }}" method="POST">
+                                    <button class="btn-action btn-confirm" title="Confirmar Cita">
+                                        <i class="fa-solid fa-check"></i>
+                                    </button>
+                                </form>
+                                {% endif %}
+
+                                {% if c.estado == 'confirmada' %}
+                                <form action="{{ url_for('admin.cambiar_estado_cita', cita_id=c.id, nuevo_estado='completada') }}" method="POST">
+                                    <button class="btn-action btn-done" title="Marcar como Completada">
+                                        <i class="fa-solid fa-magic-wand-sparkles"></i>
+                                    </button>
+                                </form>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
 
-<table class="table align-middle">
-
-<thead>
-<tr>
-<th>Cliente</th>
-<th>Servicios</th>
-<th>Fecha</th>
-<th>Hora</th>
-<th>Manicurista</th>
-<th>Estado</th>
-<th>Acciones</th>
-</tr>
-</thead>
-
-<tbody>
-
-{% for c in citas %}
-<tr>
-
-<td>
-<strong>{{ c.cliente_nombre }}</strong><br>
-<small>{{ c.telefono }}</small>
-</td>
-
-<td>{{ c.servicios }}</td>
-
-<td>{{ c.fecha }}</td>
-<td>{{ c.hora_inicio }}</td>
-
-<td>{{ c.manicurista_nombre }}</td>
-
-<td>
-<span class="
-{% if c.estado == 'pendiente' %}text-warning
-{% elif c.estado == 'confirmada' %}text-success
-{% elif c.estado == 'completada' %}text-primary
-{% else %}text-danger{% endif %}
-">
-{{ c.estado }}
-</span>
-</td>
-
-<td>
-
-{% if c.estado == 'pendiente' %}
-
-<form method="POST" action="/admin/citas/{{ c.id }}/confirmada" style="display:inline;">
-    <button class="btn btn-success btn-sm">✔</button>
-</form>
-
-<form method="POST" action="/admin/citas/{{ c.id }}/cancelada_admin" style="display:inline;">
-    <button class="btn btn-danger btn-sm">✖</button>
-</form>
-
-<!-- 💬 CONFIRMAR POR WHATSAPP -->
-<button onclick="confirmarCita(
-'{{ c.cliente_nombre }}',
-'{{ c.servicios }}',
-'{{ c.fecha }}',
-'{{ c.hora_inicio }}'
-)" class="btn btn-success btn-sm">
-💬 Confirmar
-</button>
-
-{% endif %}
-
-{% if c.estado == 'confirmada' %}
-
-<form method="POST" action="/admin/citas/{{ c.id }}/completada" style="display:inline;">
-    <button class="btn btn-dark btn-sm">✔ Finalizar</button>
-</form>
-
-<form method="POST" action="/admin/citas/{{ c.id }}/cancelada_admin" style="display:inline;">
-    <button class="btn btn-danger btn-sm">✖ Cancelar</button>
-</form>
-
-<!-- ⏰ RECORDATORIO -->
-<button onclick="recordatorio(
-'{{ c.cliente_nombre }}',
-'{{ c.fecha }}',
-'{{ c.hora_inicio }}'
-)" class="btn btn-warning btn-sm">
-⏰ Recordar
-</button>
-
-{% endif %}
-
-<!-- 🗑 ELIMINAR -->
-<form method="POST" action="/admin/citas/{{ c.id }}/eliminar" style="display:inline;">
-    <button class="btn btn-outline-danger btn-sm">🗑</button>
-</form>
-
-</td>
-
-</tr>
-{% endfor %}
-
-</tbody>
-
-</table>
+<script>
+function enviarWS(telefono, nombre, fecha, hora, servicios) {
+    // Limpiamos el teléfono de cualquier caracter que no sea número
+    const telLimpio = telefono.replace(/\D/g,'');
+    const mensaje = `¡Hola *${nombre}*! ✨ Te escribimos de *Kerly Studio*. Confirmamos tu cita de *${servicios}* para el día ${fecha} a las ${hora}. ¡Te esperamos para consentirte! 💅`;
+    const url = `https://wa.me/${telLimpio}?text=${encodeURIComponent(mensaje)}`;
+    window.open(url, '_blank');
+}
+</script>
 
 {% endblock %}
