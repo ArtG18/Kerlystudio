@@ -3,102 +3,96 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kerly Nails Studio | Elegancia en Concepción</title>
+    <title>Kerly Nails Studio | Concepción</title>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root { --beige: #F5F5F0; --gold: #D4A373; --white: #FFFFFF; --black: #1A1A1A; --gray: #888; }
+        :root { --beige: #F5F5F0; --gold: #D4A373; --white: #FFFFFF; --black: #1A1A1A; }
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Montserrat', sans-serif; background: var(--white); scroll-behavior: smooth; color: var(--black); }
+        body { font-family: 'Montserrat', sans-serif; background: var(--white); scroll-behavior: smooth; }
 
-        /* Navigation */
         nav { position: fixed; top: 0; width: 100%; padding: 15px 50px; display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); z-index: 1000; border-bottom: 1px solid #eee; }
         .logo-img { height: 45px; }
-        .nav-links a { text-decoration: none; color: var(--black); font-size: 0.75rem; font-weight: 600; letter-spacing: 1px; margin-left: 25px; transition: 0.3s; }
-        .nav-links a:hover { color: var(--gold); }
 
-        /* Hero */
-        header { height: 90vh; background: linear-gradient(rgba(0,0,0,0.1), rgba(0,0,0,0.1)), url('https://i.ibb.co/pvGc8rbc/portada.jpg') center/cover; display: flex; align-items: center; justify-content: center; text-align: center; color: white; }
-        .hero h1 { font-family: 'Playfair Display', serif; font-size: 4.5rem; text-shadow: 2px 2px 10px rgba(0,0,0,0.2); }
+        header { height: 85vh; background: linear-gradient(rgba(0,0,0,0.1), rgba(0,0,0,0.1)), url('https://i.ibb.co/pvGc8rbc/portada.jpg') center/cover; display: flex; align-items: center; justify-content: center; text-align: center; color: white; }
+        header h1 { font-family: 'Playfair Display', serif; font-size: 4.5rem; text-shadow: 2px 2px 15px rgba(0,0,0,0.3); }
 
-        /* Sections */
-        .section { padding: 100px 10%; text-align: center; }
-        .section-title { font-family: 'Playfair Display', serif; font-size: 2.8rem; margin-bottom: 15px; }
-        .section-subtitle { color: var(--gold); letter-spacing: 4px; text-transform: uppercase; font-size: 0.8rem; margin-bottom: 50px; display: block; }
+        .section { padding: 90px 10%; text-align: center; }
+        .section-title { font-family: 'Playfair Display', serif; font-size: 2.8rem; margin-bottom: 50px; }
 
-        /* Services Grid */
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 40px; }
-        .card { background: white; padding: 20px; border-radius: 4px; transition: 0.4s; border: 1px solid #f2f2f2; }
+        /* Servicios */
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 30px; }
+        .card { background: white; padding: 20px; border-radius: 8px; border: 1px solid #eee; transition: 0.4s; }
         .card:hover { transform: translateY(-10px); box-shadow: 0 20px 40px rgba(0,0,0,0.05); }
-        .card img { width: 100%; height: 350px; object-fit: cover; border-radius: 2px; margin-bottom: 20px; }
-        .price { color: var(--gold); font-weight: 600; font-size: 1.3rem; display: block; margin: 15px 0; }
+        .card img { width: 100%; height: 350px; object-fit: cover; border-radius: 4px; margin-bottom: 20px; }
+        .price { color: var(--gold); font-weight: 600; font-size: 1.3rem; display: block; margin-bottom: 20px; }
 
-        /* Gallery */
-        .gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 15px; }
-        .gallery-item { height: 280px; overflow: hidden; border-radius: 8px; }
+        /* Galería */
+        .gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; }
+        .gallery-item { height: 250px; overflow: hidden; border-radius: 12px; }
         .gallery-item img { width: 100%; height: 100%; object-fit: cover; transition: 0.6s; }
         .gallery-item:hover img { transform: scale(1.1); }
 
         /* FAQ */
         .faq-container { max-width: 800px; margin: 0 auto; text-align: left; }
-        .faq-item { margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 15px; }
-        .faq-question { font-weight: 600; font-size: 0.9rem; cursor: pointer; color: var(--gold); }
-        .faq-answer { font-size: 0.85rem; color: #666; margin-top: 8px; display: none; }
+        .faq-item { border-bottom: 1px solid #eee; padding: 20px 0; cursor: pointer; }
+        .faq-question { font-weight: 600; color: var(--gold); }
+        .faq-answer { font-size: 0.85rem; color: #777; margin-top: 10px; display: none; }
 
-        /* Buttons & Extras */
-        .btn { background: var(--black); color: white; padding: 15px 35px; border: none; cursor: pointer; letter-spacing: 2px; font-size: 0.75rem; transition: 0.3s; width: 100%; font-weight: 600; }
+        /* Botones */
+        .btn { background: var(--black); color: white; padding: 15px; border: none; cursor: pointer; letter-spacing: 2px; font-weight: 600; width: 100%; transition: 0.3s; }
         .btn:hover { background: var(--gold); }
-        
-        .whatsapp-float { position: fixed; width: 60px; height: 60px; bottom: 30px; right: 30px; background: #25d366; color: white; border-radius: 50px; text-align: center; font-size: 30px; box-shadow: 2px 2px 10px rgba(0,0,0,0.2); z-index: 1000; display: flex; align-items: center; justify-content: center; text-decoration: none; }
+        .whatsapp-float { position: fixed; width: 60px; height: 60px; bottom: 30px; right: 30px; background: #25d366; color: white; border-radius: 50px; text-align: center; font-size: 30px; display: flex; align-items: center; justify-content: center; z-index: 1000; text-decoration: none; box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
 
+        /* Modal */
         .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: center; z-index: 2000; }
         .modal-content { background: white; padding: 40px; width: 90%; max-width: 450px; border-radius: 20px; }
-        input, select { width: 100%; padding: 14px; margin: 10px 0; border: 1px solid #eee; background: #fafafa; border-radius: 8px; }
+        input, select { width: 100%; padding: 14px; margin: 10px 0; border: 1px solid #eee; border-radius: 8px; }
 
-        footer { padding: 60px; background: var(--beige); text-align: center; }
+        .alert-flash { background: var(--gold); color: white; padding: 15px; position: fixed; top: 80px; width: 100%; z-index: 1001; text-align: center; }
     </style>
 </head>
 <body>
 
 <nav>
     <img src="https://i.ibb.co/ZRFJmhvY/Logo.jpg" class="logo-img">
-    <div class="nav-links">
-        <a href="#servicios">SERVICIOS</a>
-        <a href="#galeria">GALERÍA</a>
-        <a href="#contacto">UBICACIÓN</a>
-        <a href="/login"><i class="fa fa-lock"></i></a>
+    <div style="display:flex; gap:20px;">
+        <a href="#servicios" style="text-decoration:none; color:black; font-size:0.8rem; font-weight:600;">SERVICIOS</a>
+        <a href="#galeria" style="text-decoration:none; color:black; font-size:0.8rem; font-weight:600;">GALERÍA</a>
+        <a href="/login" style="color:black"><i class="fa fa-lock"></i></a>
     </div>
 </nav>
+
+{% with messages = get_flashed_messages() %}
+  {% if messages %} {% for m in messages %}<div class="alert-flash">{{ m }}</div>{% endfor %} {% endif %}
+{% endwith %}
 
 <a href="https://wa.me/56959257968" class="whatsapp-float" target="_blank"><i class="fab fa-whatsapp"></i></a>
 
 <header>
-    <div class="hero">
-        <span style="letter-spacing: 10px; font-size: 0.9rem;">CONCEPCIÓN</span>
+    <div>
+        <p style="letter-spacing:10px; margin-bottom: 20px;">CONCEPCIÓN</p>
         <h1>Kerly Studio</h1>
-        <p style="font-weight:300; margin-top:20px; font-size: 1.1rem;">Elegancia y arte en cada detalle</p>
     </div>
 </header>
 
 <section class="section" id="servicios">
-    <span class="section-subtitle">Nuestra Selección</span>
-    <h2 class="section-title">Servicios de Autor</h2>
+    <h2 class="section-title">Nuestros Servicios</h2>
     <div class="grid">
         {% for s in servicios %}
         <div class="card">
             <img src="{{ s.imagen_url }}">
             <h3>{{ s.nombre }}</h3>
-            <p style="font-size: 0.85rem; color: var(--gray); height: 45px; overflow: hidden; margin-top:10px;">{{ s.descripcion }}</p>
+            <p style="font-size: 0.8rem; color: #777; margin: 15px 0;">{{ s.descripcion }}</p>
             <span class="price">${{ s.precio }}</span>
-            <button class="btn" onclick="openM('{{ s.id }}', '{{ s.nombre }}')">AGENDAR CITA</button>
+            <button class="btn" onclick="openM('{{ s.id }}', '{{ s.nombre }}')">AGENDAR</button>
         </div>
         {% endfor %}
     </div>
 </section>
 
-<section class="section" id="galeria" style="background: #fafafa;">
-    <span class="section-subtitle">Portafolio</span>
-    <h2 class="section-title">Resultados Reales</h2>
+<section class="section" id="galeria" style="background:#fafafa;">
+    <h2 class="section-title">Galería de Diseños</h2>
     <div class="gallery-grid">
         <div class="gallery-item"><img src="https://i.ibb.co/Rpg7LjjJ/foto1.jpg"></div>
         <div class="gallery-item"><img src="https://i.ibb.co/Jw5s0Rrf/foto2.jpg"></div>
@@ -110,56 +104,50 @@
 </section>
 
 <section class="section">
-    <span class="section-subtitle">Preguntas</span>
     <h2 class="section-title">Preguntas Frecuentes</h2>
     <div class="faq-container">
         <div class="faq-item" onclick="toggleF(this)">
-            <div class="faq-question">¿Con cuánta anticipación debo agendar?</div>
-            <div class="faq-answer">Recomendamos agendar al menos con 48 horas de anticipación para asegurar tu cupo.</div>
-        </div>
-        <div class="faq-item" onclick="toggleF(this)">
             <div class="faq-question">¿Tienen política de retrasos?</div>
-            <div class="faq-answer">Esperamos hasta 10 minutos. Después de eso, la cita podría ser cancelada para no afectar a la siguiente clienta.</div>
+            <div class="faq-answer">Esperamos un máximo de 10 minutos. Pasado ese tiempo, la cita se cancela para respetar el horario de la siguiente clienta.</div>
         </div>
         <div class="faq-item" onclick="toggleF(this)">
-            <div class="faq-question">¿Aceptan acompañantes?</div>
-            <div class="faq-answer">Por espacio y comodidad, preferimos que asistas sola a tu cita.</div>
+            <div class="faq-question">¿Con cuánto tiempo debo agendar?</div>
+            <div class="faq-answer">Al menos con 48 horas de anticipación para asegurar disponibilidad.</div>
         </div>
     </div>
 </section>
 
 <section class="section" id="contacto">
-    <span class="section-subtitle">Encuéntranos</span>
     <h2 class="section-title">Ubicación</h2>
-    <div style="width: 100%; height: 450px; border-radius: 20px; overflow: hidden; border: 1px solid #eee;">
-        <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d51111.45!2d-73.085!3d-36.827" width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
+    <div style="width: 100%; max-width: 900px; margin: 0 auto; height: 450px; border-radius: 20px; overflow: hidden; border: 1px solid #eee;">
+        <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d102143.91685338002!2d-73.1258162810352!3d-36.81938531777494!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x9669b5d929949987%3A0xf639434e7978280d!2sConcepci%C3%B3n%2C%20B%C3%ADo%20B%C3%ADo!5e0!3m2!1ses!2scl!4v1711234567890!5m2!1ses!2scl" 
+            width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
     </div>
 </section>
 
-<footer>
-    <img src="https://i.ibb.co/ZRFJmhvY/Logo.jpg" style="height:50px; margin-bottom: 25px;">
-    <p style="font-size: 0.7rem; letter-spacing: 3px; color: var(--gray);">KERLY NAILS STUDIO &copy; 2024</p>
+<footer style="padding:50px; background:var(--beige); text-align:center;">
+    <img src="https://i.ibb.co/ZRFJmhvY/Logo.jpg" style="height:40px; opacity:0.5; margin-bottom:20px;">
+    <p style="font-size: 0.7rem; letter-spacing: 2px;">KERLY NAILS STUDIO © 2024 - CONCEPCIÓN</p>
 </footer>
 
 <div class="modal" id="modalR">
     <div class="modal-content">
-        <h2 id="mTitle" style="font-family:'Playfair Display'; margin-bottom: 20px; color: var(--gold);"></h2>
+        <h2 id="mTitle" style="font-family:'Playfair Display'; color:var(--gold); margin-bottom:20px;"></h2>
         <form action="/reservar_sin_login" method="POST">
             <input type="hidden" name="servicio_id" id="mId">
-            <input type="text" name="nombre_cliente" placeholder="Nombre completo" required>
-            <input type="tel" name="telefono" placeholder="WhatsApp (Ej: +569...)" required>
+            <input type="text" name="nombre_cliente" placeholder="Tu Nombre" required>
+            <input type="tel" name="telefono" placeholder="Tu WhatsApp" required>
             <input type="date" name="fecha" id="fechaPicker" required onchange="actualizarHoras()">
             <select name="hora" id="horaSelect" required>
-                <option value="" disabled selected>Elige una fecha primero</option>
+                <option value="" disabled selected>Elige un día</option>
             </select>
-            <button type="submit" class="btn" style="margin-top:20px;">CONFIRMAR Y ENVIAR WHATSAPP</button>
-            <button type="button" onclick="closeM()" style="background:none; border:none; margin-top:20px; cursor:pointer; width:100%; color: #bbb; font-size: 0.8rem;">Cerrar</button>
+            <button type="submit" class="btn" style="margin-top:20px;">CONFIRMAR RESERVA</button>
+            <button type="button" onclick="closeM()" style="background:none; border:none; margin-top:15px; cursor:pointer; width:100%; color:#999;">Cerrar</button>
         </form>
     </div>
 </div>
 
 <script>
-    // Fecha mínima hoy
     const hoy = new Date().toISOString().split('T')[0];
     document.getElementById('fechaPicker').setAttribute('min', hoy);
 
@@ -169,36 +157,23 @@
         document.getElementById('modalR').style.display='flex'; 
     }
     function closeM() { document.getElementById('modalR').style.display='none'; }
-    
     function toggleF(el) {
-        const ans = el.querySelector('.faq-answer');
-        ans.style.display = (ans.style.display === 'block') ? 'none' : 'block';
+        const a = el.querySelector('.faq-answer');
+        a.style.display = (a.style.display === 'block') ? 'none' : 'block';
     }
 
     function actualizarHoras() {
-        const fechaIn = document.getElementById('fechaPicker').value;
-        const selectH = document.getElementById('horaSelect');
-        const fecha = new Date(fechaIn + "T00:00:00");
-        const dia = fecha.getDay(); 
+        const fIn = document.getElementById('fechaPicker').value;
+        const sel = document.getElementById('horaSelect');
+        const d = new Date(fIn + "T00:00:00").getDay();
         
-        selectH.innerHTML = '';
-        let horas = [];
+        sel.innerHTML = '';
+        let h = [];
+        if (d >= 1 && d <= 5) h = ["09:30", "11:00", "12:30", "14:00", "15:30", "17:00", "18:30"];
+        else if (d === 6) h = ["09:30", "11:00", "12:30"];
+        else { alert("Domingos cerrado."); document.getElementById('fechaPicker').value = ""; return; }
 
-        if (dia >= 1 && dia <= 5) { // L-V
-            horas = ["09:30", "11:00", "12:30", "14:00", "15:30", "17:00", "18:30"];
-        } else if (dia === 6) { // Sábado
-            horas = ["09:30", "11:00", "12:30"];
-        } else {
-            alert("Domingos cerrado. Elige otro día.");
-            document.getElementById('fechaPicker').value = "";
-            return;
-        }
-
-        horas.forEach(h => {
-            let o = document.createElement("option");
-            o.value = h; o.text = h + (parseInt(h) < 12 ? " AM" : " PM");
-            selectH.add(o);
-        });
+        h.forEach(x => { let o = document.createElement("option"); o.value = x; o.text = x; sel.add(o); });
     }
 </script>
 </body>

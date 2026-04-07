@@ -8,6 +8,7 @@ import os
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'kerly_studio_2026')
 
+# --- CONEXIÓN A BASE DE DATOS ---
 def get_db_connection():
     db_url = os.environ.get('DATABASE_URL')
     if db_url:
@@ -16,7 +17,7 @@ def get_db_connection():
         host="localhost",
         database="kerlystudio",
         user="postgres",
-        password="180105.", 
+        password="180105.",
         cursor_factory=RealDictCursor
     )
 
@@ -30,6 +31,7 @@ def execute_query(query, params=None):
     conn.close()
     return result
 
+# --- RUTAS PÚBLICAS ---
 @app.route("/")
 def home():
     servicios = execute_query("SELECT * FROM servicios WHERE activo = TRUE ORDER BY id ASC")
@@ -38,25 +40,22 @@ def home():
 @app.route("/reservar_sin_login", methods=["POST"])
 def reservar_sin_login():
     f = request.form
-    try:
-        fecha_sel = datetime.strptime(f['fecha'], '%Y-%m-%d').date()
-        hora_sel = datetime.strptime(f['hora'], '%H:%M').time()
-    except:
-        flash("Error en el formato de fecha u hora.")
-        return redirect(url_for('home'))
-        
+    fecha_sel = datetime.strptime(f['fecha'], '%Y-%m-%d').date()
+    hora_sel = datetime.strptime(f['hora'], '%H:%M').time()
     ahora = datetime.now()
     dia_semana = fecha_sel.weekday() 
 
+    # VALIDACIÓN: No fechas pasadas
     if fecha_sel < ahora.date():
         flash("No puedes agendar en una fecha que ya pasó.")
         return redirect(url_for('home'))
 
+    # VALIDACIÓN: Horarios Laborales
     es_valido = False
-    if 0 <= dia_semana <= 4: # L-V (09:30 - 19:30)
+    if 0 <= dia_semana <= 4: # Lunes a Viernes
         if datetime.strptime("09:30", "%H:%M").time() <= hora_sel <= datetime.strptime("19:30", "%H:%M").time():
             es_valido = True
-    elif dia_semana == 5: # Sábado (09:30 - 14:00)
+    elif dia_semana == 5: # Sábado
         if datetime.strptime("09:30", "%H:%M").time() <= hora_sel <= datetime.strptime("14:00", "%H:%M").time():
             es_valido = True
 
@@ -70,9 +69,12 @@ def reservar_sin_login():
     execute_query("INSERT INTO citas (nombre, telefono, servicio, fecha, hora, estado) VALUES (%s, %s, %s, %s, %s, 'pendiente')",
                   (f['nombre_cliente'], f['telefono'], nombre_s, f['fecha'], f['hora']))
 
+    # WhatsApp con tu número real
+    numero_wa = "56959257968"
     msg = f"Hola Kerly! Reservé {nombre_s} para el {f['fecha']} a las {f['hora']}. Mi nombre: {f['nombre_cliente']}."
-    return redirect(f"https://wa.me/56959257968?text={msg.replace(' ', '%20')}")
+    return redirect(f"https://wa.me/{numero_wa}?text={msg.replace(' ', '%20')}")
 
+# --- ADMIN ---
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
@@ -80,7 +82,7 @@ def login():
         if user and check_password_hash(user[0]['password_hash'], request.form['password']):
             session.update({'user_id': user[0]['id'], 'rol': user[0]['rol']})
             return redirect(url_for('admin_dashboard'))
-        flash("Credenciales incorrectas")
+        flash("Acceso denegado")
     return render_template("login.html")
 
 @app.route("/admin")
