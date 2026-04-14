@@ -78,8 +78,7 @@ def reservar_sin_login():
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
-        # Así debe quedar la línea en tu run.py
-        user = execute_query("SELECT * FROM usuarios WHERE username = %s", (request.form['username'],))
+        user = execute_query('SELECT * FROM usuarios WHERE "username" = %s', (request.form['username'],))
         if user and check_password_hash(user[0]['password_hash'], request.form['password']):
             session.update({'user_id': user[0]['id'], 'rol': user[0]['rol']})
             return redirect(url_for('admin_dashboard'))
