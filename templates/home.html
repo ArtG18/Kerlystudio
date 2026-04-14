@@ -17,20 +17,21 @@
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
-        html { scroll-behavior: smooth; } /* Efecto de scroll suave */
+        html { scroll-behavior: smooth; } /* Movimiento suave al navegar */
 
         body { 
             font-family: 'Montserrat', sans-serif; 
             background: var(--white); 
             color: var(--black);
+            line-height: 1.6;
         }
 
-        /* BARRA DE NAVEGACIÓN */
+        /* BARRA DE NAVEGACIÓN (NAVBAR) */
         nav { 
             position: fixed; 
             top: 0; 
             width: 100%; 
-            padding: 15px 5%; 
+            padding: 15px 8%; 
             display: flex; 
             justify-content: space-between; 
             align-items: center; 
@@ -40,23 +41,32 @@
             border-bottom: 1px solid #eee; 
         }
 
-        .logo-img { height: 45px; }
+        .logo-img { height: 50px; }
 
-        .nav-links { display: flex; align-items: center; gap: 25px; }
+        .nav-links { display: flex; align-items: center; gap: 30px; }
         .nav-links a { 
             text-decoration: none; 
             color: var(--black); 
-            font-size: 0.8rem; 
+            font-size: 0.75rem; 
             font-weight: 600; 
-            letter-spacing: 1px;
+            letter-spacing: 2px;
             transition: 0.3s;
+            text-transform: uppercase;
         }
         .nav-links a:hover { color: var(--gold); }
 
-        /* HERO / PORTADA */
+        /* ICONO DE UBICACIÓN EN EL MENÚ */
+        .nav-icon-link {
+            font-size: 1.2rem;
+            color: var(--gold) !important;
+            transition: 0.3s;
+        }
+        .nav-icon-link:hover { transform: scale(1.2); }
+
+        /* PORTADA (HERO) */
         header { 
-            height: 80vh; 
-            background: linear-gradient(rgba(0,0,0,0.1), rgba(0,0,0,0.1)), url('https://i.ibb.co/pvGc8rbc/portada.jpg') center/cover; 
+            height: 90vh; 
+            background: linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.2)), url('https://i.ibb.co/pvGc8rbc/portada.jpg') center/cover; 
             display: flex; 
             align-items: center; 
             justify-content: center; 
@@ -66,59 +76,65 @@
         }
         header h1 { 
             font-family: 'Playfair Display', serif; 
-            font-size: clamp(3rem, 8vw, 5rem); 
-            text-shadow: 2px 2px 15px rgba(0,0,0,0.3); 
+            font-size: clamp(2.5rem, 8vw, 5rem); 
+            letter-spacing: 2px;
         }
 
-        /* SECCIONES GENERALES */
-        .section { padding: 80px 10%; text-align: center; }
+        /* SECCIONES */
+        .section { padding: 100px 10%; text-align: center; }
         .section-title { 
             font-family: 'Playfair Display', serif; 
-            font-size: 2.5rem; 
+            font-size: 2.8rem; 
             margin-bottom: 50px; 
-            position: relative;
+            color: var(--black);
         }
         .section-title::after {
-            content: ''; display: block; width: 50px; height: 2px; background: var(--gold); margin: 15px auto;
+            content: ''; display: block; width: 60px; height: 1.5px; background: var(--gold); margin: 20px auto;
         }
 
-        /* SERVICIOS */
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 40px; }
+        /* GRILLA DE SERVICIOS */
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 40px; }
         .card { 
             background: white; 
-            padding: 25px; 
-            border-radius: 15px; 
+            padding: 30px; 
+            border-radius: 0; /* Estilo minimalista */
             transition: 0.4s; 
-            border: 1px solid #f0f0f0;
+            border: 1px solid #f2f2f2;
         }
-        .card:hover { transform: translateY(-10px); box-shadow: 0 20px 40px rgba(0,0,0,0.05); }
-        .card img { width: 100%; height: 300px; object-fit: cover; border-radius: 10px; margin-bottom: 20px; }
-        .price { color: var(--gold); font-weight: 600; font-size: 1.2rem; display: block; margin-bottom: 20px; }
+        .card:hover { box-shadow: 0 15px 40px rgba(0,0,0,0.05); }
+        .card img { width: 100%; height: 350px; object-fit: cover; margin-bottom: 25px; }
+        .card h3 { font-family: 'Playfair Display', serif; font-size: 1.4rem; margin-bottom: 10px; }
+        .price { color: var(--gold); font-weight: 600; font-size: 1.1rem; display: block; margin-bottom: 25px; }
 
-        /* BOTONES */
-        .btn { 
-            background: var(--black); 
-            color: white; 
-            padding: 15px 30px; 
-            border: none; 
+        /* BOTÓN DE RESERVA (ARREGLADO) */
+        .btn-reserva { 
+            background: transparent; 
+            color: var(--gold); 
+            padding: 14px 30px; 
+            border: 1px solid var(--gold); 
             cursor: pointer; 
             letter-spacing: 2px; 
             font-weight: 600; 
             width: 100%; 
-            transition: 0.3s; 
-            font-size: 0.8rem;
+            transition: 0.4s; 
+            font-size: 0.75rem;
+            text-transform: uppercase;
         }
-        .btn:hover { background: var(--gold); }
+        .btn-reserva:hover { 
+            background: var(--gold); 
+            color: white; 
+        }
 
-        /* MAPA */
+        /* SECCIÓN UBICACIÓN */
+        #ubicacion { background-color: var(--beige); }
         .map-container {
             width: 100%;
-            max-width: 1000px;
+            max-width: 1100px;
             margin: 0 auto;
-            height: 450px;
-            border-radius: 25px;
+            height: 500px;
+            border-radius: 15px;
             overflow: hidden;
-            box-shadow: 0 15px 45px rgba(0,0,0,0.08);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
             border: 1px solid #eee;
         }
 
@@ -127,38 +143,47 @@
             position: fixed; width: 60px; height: 60px; bottom: 30px; right: 30px; 
             background: #25d366; color: white; border-radius: 50px; text-align: center; 
             font-size: 30px; display: flex; align-items: center; justify-content: center; 
-            z-index: 1000; text-decoration: none; box-shadow: 0 5px 15px rgba(0,0,0,0.2); 
+            z-index: 1000; text-decoration: none; box-shadow: 0 8px 20px rgba(0,0,0,0.15); 
+            transition: 0.3s;
         }
+        .whatsapp-float:hover { transform: scale(1.1); }
 
-        /* MODAL RESERVA */
+        /* FOOTER */
+        footer { padding: 60px 20px; text-align: center; border-top: 1px solid #eee; background: white; }
+        .footer-logo { height: 40px; margin-bottom: 20px; opacity: 0.7; }
+        .footer-text { font-size: 0.7rem; letter-spacing: 3px; color: #999; text-transform: uppercase; }
+
+        /* MODAL */
         .modal { 
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            background: rgba(0,0,0,0.8); display: none; justify-content: center; 
-            align-items: center; z-index: 2000; 
+            background: rgba(0,0,0,0.6); display: none; justify-content: center; 
+            align-items: center; z-index: 2000; backdrop-filter: blur(4px);
         }
         .modal-content { 
-            background: white; padding: 40px; width: 90%; max-width: 400px; 
-            border-radius: 20px; text-align: center; 
+            background: white; padding: 40px; width: 95%; max-width: 420px; 
+            border-radius: 10px; text-align: center; 
         }
-        input, select { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; }
+        input, select { 
+            width: 100%; padding: 14px; margin: 10px 0; border: 1px solid #eee; 
+            border-radius: 5px; background: #fafafa; font-family: inherit;
+        }
 
         @media (max-width: 768px) {
-            nav { padding: 15px 20px; }
             .nav-links { gap: 15px; }
+            .section { padding: 60px 5%; }
         }
     </style>
 </head>
 <body>
 
 <nav>
-    <a href="/"><img src="https://i.ibb.co/ZRFJmhvY/Logo.jpg" class="logo-img"></a>
+    <a href="/"><img src="https://i.ibb.co/ZRFJmhvY/Logo.jpg" class="logo-img" alt="Kerly Nails"></a>
     <div class="nav-links">
-        <a href="#servicios">SERVICIOS</a>
-        <a href="#galeria">GALERÍA</a>
-        <a href="#ubicacion" title="Ver Ubicación" style="font-size: 1.1rem; color: var(--gold);">
+        <a href="#servicios">Servicios</a>
+        <a href="#ubicacion" class="nav-icon-link" title="Ver Ubicación">
             <i class="fa-solid fa-location-dot"></i>
         </a>
-        <a href="/login"><i class="fa fa-user-lock"></i></a>
+        <a href="/login" title="Admin"><i class="fa-solid fa-user-lock"></i></a>
     </div>
 </nav>
 
@@ -168,8 +193,8 @@
 
 <header>
     <div>
-        <p style="letter-spacing:8px; margin-bottom: 15px; font-size: 0.7rem; font-weight: 600;">CONCEPCIÓN, CHILE</p>
-        <h1>Kerly Studio</h1>
+        <p style="letter-spacing:10px; margin-bottom: 20px; font-size: 0.75rem; font-weight: 600;">CONCEPCIÓN, CHILE</p>
+        <h1>Kerly Nails Studio</h1>
     </div>
 </header>
 
@@ -179,31 +204,30 @@
         {% for s in servicios %}
         <div class="card">
             <img src="{{ s.imagen_url }}" alt="{{ s.nombre }}">
-            <h3 style="font-family: 'Playfair Display'; margin-bottom: 10px;">{{ s.nombre }}</h3>
-            <p style="font-size: 0.8rem; color: #777; margin-bottom: 15px; line-height: 1.6;">{{ s.descripcion }}</p>
+            <h3>{{ s.nombre }}</h3>
+            <p style="font-size: 0.85rem; color: #777; margin-bottom: 15px;">{{ s.descripcion }}</p>
             <span class="price">${{ s.precio }}</span>
-            <button class="btn" onclick="openModal('{{ s.id }}', '{{ s.nombre }}')">AGENDAR CITA</button>
+            <button class="btn-reserva" onclick="openModal('{{ s.id }}', '{{ s.nombre }}')">Agendar Cita</button>
         </div>
         {% endfor %}
     </div>
 </section>
 
-<section class="section" id="ubicacion" style="background-color: #fafafa;">
+<section class="section" id="ubicacion">
     <h2 class="section-title">Ubicación</h2>
-    <p style="margin-bottom: 30px; color: #666;">
+    <p style="margin-bottom: 40px; color: #555; letter-spacing: 1px;">
         <i class="fa-solid fa-map-pin" style="color: var(--gold);"></i> 
         Barros Arana 514, Local 12, Concepción.
     </p>
     
     <div class="map-container">
         <iframe 
-            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3194.341416393933!2d-73.0514936!3d-36.8271101!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x9669b54455f9e969%3A0x658e5c38f8ed2988!2sKerly%20nails%20studio!5e0!3m2!1ses!2scl!4v1713117000000!5m2!1ses!2scl" 
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3194.218320491829!2d-73.0513889!3d-36.8252778!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x9669b54455f9ae69%3A0x658e5c38f8ed2988!2sKerly%20nails%20studio!5e0!3m2!1ses-419!2scl!4v1713123456789!5m2!1ses-419!2scl" 
             width="100%" 
             height="100%" 
             style="border:0;" 
             allowfullscreen="" 
-            loading="lazy" 
-            referrerpolicy="no-referrer-when-downgrade">
+            loading="lazy">
         </iframe>
     </div>
 </section>
@@ -213,24 +237,25 @@
         <h2 id="modalTitle" style="font-family:'Playfair Display'; color:var(--gold); margin-bottom:20px;"></h2>
         <form action="/reservar_sin_login" method="POST">
             <input type="hidden" name="servicio_id" id="serviceId">
-            <input type="text" name="nombre_cliente" placeholder="Tu nombre completo" required>
+            <input type="text" name="nombre_cliente" placeholder="Tu nombre" required>
             <input type="tel" name="telefono" placeholder="WhatsApp (ej: 912345678)" required>
             <input type="date" name="fecha" id="datePicker" required onchange="updateHours()">
             <select name="hora" id="hourSelect" required>
-                <option value="" disabled selected>Selecciona una fecha primero</option>
+                <option value="" disabled selected>Elige un día primero</option>
             </select>
-            <button type="submit" class="btn" style="margin-top:20px;">CONFIRMAR POR WHATSAPP</button>
-            <button type="button" onclick="closeModal()" style="background:none; border:none; margin-top:15px; cursor:pointer; color:#999; font-size: 0.8rem;">CANCELAR</button>
+            <button type="submit" class="btn-reserva" style="margin-top:20px; background: var(--black); color: white; border: none;">Confirmar Cita</button>
+            <button type="button" onclick="closeModal()" style="background:none; border:none; margin-top:15px; cursor:pointer; color:#bbb; font-size: 0.75rem; letter-spacing: 1px;">CERRAR</button>
         </form>
     </div>
 </div>
 
-<footer style="padding:60px 20px; background:var(--white); text-align:center; border-top: 1px solid #eee;">
-    <p style="font-size: 0.7rem; letter-spacing: 3px; color: #bbb;">KERLY NAILS STUDIO © 2026</p>
+<footer>
+    <img src="https://i.ibb.co/ZRFJmhvY/Logo.jpg" class="footer-logo" alt="Logo">
+    <p class="footer-text">Kerly Nails Studio © 2026</p>
 </footer>
 
 <script>
-    // Configurar fecha mínima (hoy)
+    // Configurar fecha mínima hoy
     const today = new Date().toISOString().split('T')[0];
     document.getElementById('datePicker').setAttribute('min', today);
 
@@ -252,17 +277,13 @@
         select.innerHTML = '';
         let hours = [];
 
-        // Lunes(1) a Viernes(5): 09:30 - 19:30
-        if (day >= 1 && day <= 5) {
+        // Horarios del Studio
+        if (day >= 1 && day <= 5) { // Lun-Vie: 09:30 a 19:30
             hours = ["09:30", "11:00", "12:30", "14:00", "15:30", "17:00", "18:30"];
-        } 
-        // Sábados(6): 09:30 - 14:00
-        else if (day === 6) {
+        } else if (day === 6) { // Sáb: 09:30 a 14:00
             hours = ["09:30", "11:00", "12:30"];
-        } 
-        // Domingos(0): Cerrado
-        else {
-            alert("Los domingos estamos cerrados. Por favor elige otro día.");
+        } else {
+            alert("Los domingos el estudio permanece cerrado.");
             document.getElementById('datePicker').value = "";
             return;
         }
@@ -275,11 +296,8 @@
         });
     }
 
-    // Cerrar modal al hacer clic fuera
     window.onclick = function(event) {
-        if (event.target == document.getElementById('modalReserva')) {
-            closeModal();
-        }
+        if (event.target == document.getElementById('modalReserva')) { closeModal(); }
     }
 </script>
 
