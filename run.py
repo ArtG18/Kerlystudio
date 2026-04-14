@@ -6,6 +6,7 @@ from datetime import datetime
 import os
 
 app = Flask(__name__)
+# Clave secreta para manejar sesiones de Kerly Nails Studio
 app.secret_key = os.environ.get('SECRET_KEY', 'kerly_studio_2026')
 
 # --- CONEXIÓN A BASE DE DATOS ---
@@ -13,6 +14,7 @@ def get_db_connection():
     db_url = os.environ.get('DATABASE_URL')
     if db_url:
         return psycopg2.connect(db_url, cursor_factory=RealDictCursor)
+    # Configuración local por si falla la de Render
     return psycopg2.connect(
         host="localhost",
         database="kerlystudio",
@@ -24,16 +26,22 @@ def get_db_connection():
 def execute_query(query, params=None):
     conn = get_db_connection()
     cur = conn.cursor()
-    cur.execute(query, params)
-    conn.commit()
-    result = cur.fetchall() if cur.description else None
-    cur.close()
-    conn.close()
-    return result
+    try:
+        cur.execute(query, params)
+        conn.commit()
+        result = cur.fetchall() if cur.description else None
+        return result
+    except Exception as e:
+        print(f"Error en la consulta: {e}")
+        return None
+    finally:
+        cur.close()
+        conn.close()
 
 # --- RUTAS PÚBLICAS ---
 @app.route("/")
 def home():
+    # Obtiene servicios activos para Kerly Nails Studio
     servicios = execute_query("SELECT * FROM servicios WHERE activo = TRUE ORDER BY id ASC")
     return render_template("home.html", servicios=servicios)
 
@@ -50,44 +58,52 @@ def reservar_sin_login():
         flash("No puedes agendar en una fecha que ya pasó.")
         return redirect(url_for('home'))
 
-    # VALIDACIÓN: Horarios Laborales
+    # VALIDACIÓN: Horarios Laborales de Kerly Nails Studio
     es_valido = False
-    if 0 <= dia_semana <= 4: # Lunes a Viernes
+    if 0 <= dia_semana <= 4: # Lunes a Viernes: 09:30 a 19:30
         if datetime.strptime("09:30", "%H:%M").time() <= hora_sel <= datetime.strptime("19:30", "%H:%M").time():
             es_valido = True
-    elif dia_semana == 5: # Sábado
+    elif dia_semana == 5: # Sábado: 09:30 a 14:00
         if datetime.strptime("09:30", "%H:%M").time() <= hora_sel <= datetime.strptime("14:00", "%H:%M").time():
             es_valido = True
 
     if not es_valido:
-        flash("El horario seleccionado está fuera de nuestra jornada laboral.")
+        flash("El estudio está cerrado en ese horario.")
         return redirect(url_for('home'))
 
     serv = execute_query("SELECT nombre FROM servicios WHERE id = %s", (f['servicio_id'],))
     nombre_s = serv[0]['nombre'] if serv else "Servicio"
     
+    # Registro de la cita en la base de datos
     execute_query("INSERT INTO citas (nombre, telefono, servicio, fecha, hora, estado) VALUES (%s, %s, %s, %s, %s, 'pendiente')",
                   (f['nombre_cliente'], f['telefono'], nombre_s, f['fecha'], f['hora']))
 
-    # WhatsApp con tu número real
+    # WhatsApp automático al número oficial
     numero_wa = "56959257968"
     msg = f"Hola Kerly! Reservé {nombre_s} para el {f['fecha']} a las {f['hora']}. Mi nombre: {f['nombre_cliente']}."
     return redirect(f"https://wa.me/{numero_wa}?text={msg.replace(' ', '%20')}")
 
-# --- ADMIN ---
+# --- ADMINISTRACIÓN ---
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
-        user = execute_query('SELECT * FROM usuarios WHERE "username" = %s', (request.form['username'],))
-        if user and check_password_hash(user[0]['password_hash'], request.form['password']):
-            session.update({'user_id': user[0]['id'], 'rol': user[0]['rol']})
-            return redirect(url_for('admin_dashboard'))
-        flash("Acceso denegado")
+        # CORRECCIÓN: Consulta limpia sin comillas dobles en username
+        user = execute_query("SELECT * FROM usuarios WHERE username = %s", (request.form['username'],))
+        
+        if user and len(user) > 0:
+            if check_password_hash(user[0]['password_hash'], request.form['password']):
+                session.update({'user_id': user[0]['id'], 'rol': user[0]['rol']})
+                return redirect(url_for('admin_dashboard'))
+        
+        flash("Usuario o contraseña incorrectos.")
     return render_template("login.html")
 
 @app.route("/admin")
 def admin_dashboard():
-    if session.get('rol') != 'admin': return redirect(url_for('login'))
+    # Solo permite acceso a administradores
+    if session.get('rol') != 'admin': 
+        return redirect(url_for('login'))
+        
     return render_template("admin_dashboard.html", 
                            citas=execute_query("SELECT * FROM citas ORDER BY fecha DESC"),
                            servicios=execute_query("SELECT * FROM servicios ORDER BY id ASC"))
