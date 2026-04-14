@@ -1,0 +1,204 @@
+{% extends "base.html" %}
+{% block content %}
+
+<style>
+    .login-wrapper {
+        min-height: 85vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 40px 20px;
+        background: #F5F5F0; /* Beige suave de fondo */
+    }
+
+    .login-card {
+        width: 100%;
+        max-width: 420px;
+        background: white;
+        border-radius: 15px;
+        padding: 45px 35px;
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.05);
+        border: 1px solid #eee;
+    }
+
+    .login-icon {
+        width: 70px;
+        height: 70px;
+        margin: 0 auto 20px;
+        border-radius: 50%;
+        background: #F5F5F0;
+        color: #D4A373; /* Dorado de la marca */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        border: 1px solid #D4A373;
+    }
+
+    .login-title {
+        font-family: 'Playfair Display', serif; /* Tipografía elegante */
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: #1A1A1A;
+        margin-bottom: 10px;
+        letter-spacing: 1px;
+    }
+
+    .login-subtitle {
+        color: #888;
+        margin-bottom: 30px;
+        font-size: 0.9rem;
+        line-height: 1.5;
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: #555;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 8px;
+        display: block;
+        text-align: left;
+    }
+
+    .form-control {
+        width: 100%;
+        border-radius: 8px;
+        padding: 12px 15px;
+        border: 1px solid #e0e0e0;
+        background: #fafafa;
+        margin-bottom: 20px;
+        box-sizing: border-box;
+        transition: 0.3s;
+    }
+
+    .form-control:focus {
+        border-color: #D4A373;
+        outline: none;
+        background: white;
+        box-shadow: 0 0 0 3px rgba(212, 163, 115, 0.1);
+    }
+
+    .btn-login {
+        background: #1A1A1A;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        padding: 15px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        font-size: 0.8rem;
+        cursor: pointer;
+        transition: 0.4s;
+        width: 100%;
+    }
+
+    .btn-login:hover {
+        background: #D4A373;
+        transform: translateY(-2px);
+    }
+
+    .custom-alert {
+        border-radius: 8px;
+        font-size: 0.85rem;
+        padding: 12px;
+        margin-bottom: 20px;
+        background: #fdf2f2;
+        color: #9b1c1c;
+        border: 1px solid #f8b4b4;
+    }
+
+    .login-links {
+        margin-top: 25px;
+        text-align: center;
+        color: #999;
+        font-size: 0.85rem;
+    }
+
+    .login-links a {
+        color: #D4A373;
+        text-decoration: none;
+        font-weight: 600;
+    }
+
+    .login-links a:hover {
+        text-decoration: underline;
+    }
+
+    .helper-text {
+        font-size: 0.75rem;
+        color: #bbb;
+        margin-top: -15px;
+        margin-bottom: 20px;
+        text-align: left;
+    }
+</style>
+
+<div class="login-wrapper">
+    <div class="login-card">
+        <div class="text-center" style="text-align: center;">
+            <div class="login-icon">
+                <i class="fa-solid fa-lock"></i>
+            </div>
+            <h2 class="login-title">Administración</h2>
+            <p class="login-subtitle">Acceso exclusivo para gestión de Kerly Nails Studio.</p>
+        </div>
+
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="custom-alert">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <form method="POST" id="loginForm">
+            <div>
+                <label for="username" class="form-label">Usuario</label>
+                <input
+                    type="text"
+                    class="form-control"
+                    id="username"
+                    name="username"
+                    placeholder="Tu usuario"
+                    required
+                >
+            </div>
+
+            <div>
+                <label for="password" class="form-label">Contraseña</label>
+                <input
+                    type="password"
+                    class="form-control"
+                    id="password"
+                    name="password"
+                    placeholder="••••••••"
+                    required
+                >
+                <div class="helper-text">Seguridad de grado profesional activada.</div>
+            </div>
+
+            <button type="submit" class="btn-login" id="loginBtn">
+                Entrar al Panel
+            </button>
+        </form>
+
+        <div class="login-links">
+            <a href="{{ url_for('home') }}">Volver a la página principal</a>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById("loginForm").addEventListener("submit", function() {
+    const btn = document.getElementById("loginBtn");
+    btn.innerText = "VERIFICANDO...";
+    btn.style.opacity = "0.7";
+});
+</script>
+
+{% endblock %}

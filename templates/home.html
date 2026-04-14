@@ -6,72 +6,169 @@
     <title>Kerly Nails Studio | Concepción</title>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <style>
-        :root { --beige: #F5F5F0; --gold: #D4A373; --white: #FFFFFF; --black: #1A1A1A; }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Montserrat', sans-serif; background: var(--white); scroll-behavior: smooth; }
+        :root { 
+            --beige: #F5F5F0; 
+            --gold: #D4A373; 
+            --white: #FFFFFF; 
+            --black: #1A1A1A; 
+        }
 
-        nav { position: fixed; top: 0; width: 100%; padding: 15px 50px; display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); z-index: 1000; border-bottom: 1px solid #eee; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        html { scroll-behavior: smooth; } /* Efecto de scroll suave */
+
+        body { 
+            font-family: 'Montserrat', sans-serif; 
+            background: var(--white); 
+            color: var(--black);
+        }
+
+        /* BARRA DE NAVEGACIÓN */
+        nav { 
+            position: fixed; 
+            top: 0; 
+            width: 100%; 
+            padding: 15px 5%; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            background: rgba(255,255,255,0.98); 
+            backdrop-filter: blur(10px); 
+            z-index: 1000; 
+            border-bottom: 1px solid #eee; 
+        }
+
         .logo-img { height: 45px; }
 
-        header { height: 85vh; background: linear-gradient(rgba(0,0,0,0.1), rgba(0,0,0,0.1)), url('https://i.ibb.co/pvGc8rbc/portada.jpg') center/cover; display: flex; align-items: center; justify-content: center; text-align: center; color: white; }
-        header h1 { font-family: 'Playfair Display', serif; font-size: 4.5rem; text-shadow: 2px 2px 15px rgba(0,0,0,0.3); }
+        .nav-links { display: flex; align-items: center; gap: 25px; }
+        .nav-links a { 
+            text-decoration: none; 
+            color: var(--black); 
+            font-size: 0.8rem; 
+            font-weight: 600; 
+            letter-spacing: 1px;
+            transition: 0.3s;
+        }
+        .nav-links a:hover { color: var(--gold); }
 
-        .section { padding: 90px 10%; text-align: center; }
-        .section-title { font-family: 'Playfair Display', serif; font-size: 2.8rem; margin-bottom: 50px; }
+        /* HERO / PORTADA */
+        header { 
+            height: 80vh; 
+            background: linear-gradient(rgba(0,0,0,0.1), rgba(0,0,0,0.1)), url('https://i.ibb.co/pvGc8rbc/portada.jpg') center/cover; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            text-align: center; 
+            color: white; 
+            margin-top: 60px;
+        }
+        header h1 { 
+            font-family: 'Playfair Display', serif; 
+            font-size: clamp(3rem, 8vw, 5rem); 
+            text-shadow: 2px 2px 15px rgba(0,0,0,0.3); 
+        }
 
-        /* Servicios */
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 30px; }
-        .card { background: white; padding: 20px; border-radius: 8px; border: 1px solid #eee; transition: 0.4s; }
+        /* SECCIONES GENERALES */
+        .section { padding: 80px 10%; text-align: center; }
+        .section-title { 
+            font-family: 'Playfair Display', serif; 
+            font-size: 2.5rem; 
+            margin-bottom: 50px; 
+            position: relative;
+        }
+        .section-title::after {
+            content: ''; display: block; width: 50px; height: 2px; background: var(--gold); margin: 15px auto;
+        }
+
+        /* SERVICIOS */
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 40px; }
+        .card { 
+            background: white; 
+            padding: 25px; 
+            border-radius: 15px; 
+            transition: 0.4s; 
+            border: 1px solid #f0f0f0;
+        }
         .card:hover { transform: translateY(-10px); box-shadow: 0 20px 40px rgba(0,0,0,0.05); }
-        .card img { width: 100%; height: 350px; object-fit: cover; border-radius: 4px; margin-bottom: 20px; }
-        .price { color: var(--gold); font-weight: 600; font-size: 1.3rem; display: block; margin-bottom: 20px; }
+        .card img { width: 100%; height: 300px; object-fit: cover; border-radius: 10px; margin-bottom: 20px; }
+        .price { color: var(--gold); font-weight: 600; font-size: 1.2rem; display: block; margin-bottom: 20px; }
 
-        /* Galería */
-        .gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; }
-        .gallery-item { height: 250px; overflow: hidden; border-radius: 12px; }
-        .gallery-item img { width: 100%; height: 100%; object-fit: cover; transition: 0.6s; }
-        .gallery-item:hover img { transform: scale(1.1); }
-
-        /* FAQ */
-        .faq-container { max-width: 800px; margin: 0 auto; text-align: left; }
-        .faq-item { border-bottom: 1px solid #eee; padding: 20px 0; cursor: pointer; }
-        .faq-question { font-weight: 600; color: var(--gold); }
-        .faq-answer { font-size: 0.85rem; color: #777; margin-top: 10px; display: none; }
-
-        /* Botones */
-        .btn { background: var(--black); color: white; padding: 15px; border: none; cursor: pointer; letter-spacing: 2px; font-weight: 600; width: 100%; transition: 0.3s; }
+        /* BOTONES */
+        .btn { 
+            background: var(--black); 
+            color: white; 
+            padding: 15px 30px; 
+            border: none; 
+            cursor: pointer; 
+            letter-spacing: 2px; 
+            font-weight: 600; 
+            width: 100%; 
+            transition: 0.3s; 
+            font-size: 0.8rem;
+        }
         .btn:hover { background: var(--gold); }
-        .whatsapp-float { position: fixed; width: 60px; height: 60px; bottom: 30px; right: 30px; background: #25d366; color: white; border-radius: 50px; text-align: center; font-size: 30px; display: flex; align-items: center; justify-content: center; z-index: 1000; text-decoration: none; box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
 
-        /* Modal */
-        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: center; z-index: 2000; }
-        .modal-content { background: white; padding: 40px; width: 90%; max-width: 450px; border-radius: 20px; }
-        input, select { width: 100%; padding: 14px; margin: 10px 0; border: 1px solid #eee; border-radius: 8px; }
+        /* MAPA */
+        .map-container {
+            width: 100%;
+            max-width: 1000px;
+            margin: 0 auto;
+            height: 450px;
+            border-radius: 25px;
+            overflow: hidden;
+            box-shadow: 0 15px 45px rgba(0,0,0,0.08);
+            border: 1px solid #eee;
+        }
 
-        .alert-flash { background: var(--gold); color: white; padding: 15px; position: fixed; top: 80px; width: 100%; z-index: 1001; text-align: center; }
+        /* WHATSAPP FLOAT */
+        .whatsapp-float { 
+            position: fixed; width: 60px; height: 60px; bottom: 30px; right: 30px; 
+            background: #25d366; color: white; border-radius: 50px; text-align: center; 
+            font-size: 30px; display: flex; align-items: center; justify-content: center; 
+            z-index: 1000; text-decoration: none; box-shadow: 0 5px 15px rgba(0,0,0,0.2); 
+        }
+
+        /* MODAL RESERVA */
+        .modal { 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(0,0,0,0.8); display: none; justify-content: center; 
+            align-items: center; z-index: 2000; 
+        }
+        .modal-content { 
+            background: white; padding: 40px; width: 90%; max-width: 400px; 
+            border-radius: 20px; text-align: center; 
+        }
+        input, select { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; }
+
+        @media (max-width: 768px) {
+            nav { padding: 15px 20px; }
+            .nav-links { gap: 15px; }
+        }
     </style>
 </head>
 <body>
 
 <nav>
-    <img src="https://i.ibb.co/ZRFJmhvY/Logo.jpg" class="logo-img">
-    <div style="display:flex; gap:20px;">
-        <a href="#servicios" style="text-decoration:none; color:black; font-size:0.8rem; font-weight:600;">SERVICIOS</a>
-        <a href="#galeria" style="text-decoration:none; color:black; font-size:0.8rem; font-weight:600;">GALERÍA</a>
-        <a href="/login" style="color:black"><i class="fa fa-lock"></i></a>
+    <a href="/"><img src="https://i.ibb.co/ZRFJmhvY/Logo.jpg" class="logo-img"></a>
+    <div class="nav-links">
+        <a href="#servicios">SERVICIOS</a>
+        <a href="#galeria">GALERÍA</a>
+        <a href="#ubicacion" title="Ver Ubicación" style="font-size: 1.1rem; color: var(--gold);">
+            <i class="fa-solid fa-location-dot"></i>
+        </a>
+        <a href="/login"><i class="fa fa-user-lock"></i></a>
     </div>
 </nav>
 
-{% with messages = get_flashed_messages() %}
-  {% if messages %} {% for m in messages %}<div class="alert-flash">{{ m }}</div>{% endfor %} {% endif %}
-{% endwith %}
-
-<a href="https://wa.me/56959257968" class="whatsapp-float" target="_blank"><i class="fab fa-whatsapp"></i></a>
+<a href="https://wa.me/56959257968" class="whatsapp-float" target="_blank">
+    <i class="fab fa-whatsapp"></i>
+</a>
 
 <header>
     <div>
-        <p style="letter-spacing:10px; margin-bottom: 20px;">CONCEPCIÓN</p>
+        <p style="letter-spacing:8px; margin-bottom: 15px; font-size: 0.7rem; font-weight: 600;">CONCEPCIÓN, CHILE</p>
         <h1>Kerly Studio</h1>
     </div>
 </header>
@@ -81,100 +178,110 @@
     <div class="grid">
         {% for s in servicios %}
         <div class="card">
-            <img src="{{ s.imagen_url }}">
-            <h3>{{ s.nombre }}</h3>
-            <p style="font-size: 0.8rem; color: #777; margin: 15px 0;">{{ s.descripcion }}</p>
+            <img src="{{ s.imagen_url }}" alt="{{ s.nombre }}">
+            <h3 style="font-family: 'Playfair Display'; margin-bottom: 10px;">{{ s.nombre }}</h3>
+            <p style="font-size: 0.8rem; color: #777; margin-bottom: 15px; line-height: 1.6;">{{ s.descripcion }}</p>
             <span class="price">${{ s.precio }}</span>
-            <button class="btn" onclick="openM('{{ s.id }}', '{{ s.nombre }}')">AGENDAR</button>
+            <button class="btn" onclick="openModal('{{ s.id }}', '{{ s.nombre }}')">AGENDAR CITA</button>
         </div>
         {% endfor %}
     </div>
 </section>
 
-<section class="section" id="galeria" style="background:#fafafa;">
-    <h2 class="section-title">Galería de Diseños</h2>
-    <div class="gallery-grid">
-        <div class="gallery-item"><img src="https://i.ibb.co/Rpg7LjjJ/foto1.jpg"></div>
-        <div class="gallery-item"><img src="https://i.ibb.co/Jw5s0Rrf/foto2.jpg"></div>
-        <div class="gallery-item"><img src="https://i.ibb.co/FFrtjw1/foto3.jpg"></div>
-        <div class="gallery-item"><img src="https://i.ibb.co/zVFyPvCQ/foto4.jpg"></div>
-        <div class="gallery-item"><img src="https://i.ibb.co/5gf42pwb/foto5.jpg"></div>
-        <div class="gallery-item"><img src="https://i.ibb.co/5ghnbsZf/foto6.jpg"></div>
-    </div>
-</section>
-
-<section class="section">
-    <h2 class="section-title">Preguntas Frecuentes</h2>
-    <div class="faq-container">
-        <div class="faq-item" onclick="toggleF(this)">
-            <div class="faq-question">¿Tienen política de retrasos?</div>
-            <div class="faq-answer">Esperamos un máximo de 10 minutos. Pasado ese tiempo, la cita se cancela para respetar el horario de la siguiente clienta.</div>
-        </div>
-        <div class="faq-item" onclick="toggleF(this)">
-            <div class="faq-question">¿Con cuánto tiempo debo agendar?</div>
-            <div class="faq-answer">Al menos con 48 horas de anticipación para asegurar disponibilidad.</div>
-        </div>
-    </div>
-</section>
-
-<section class="section" id="contacto">
+<section class="section" id="ubicacion" style="background-color: #fafafa;">
     <h2 class="section-title">Ubicación</h2>
-    <div style="width: 100%; max-width: 900px; margin: 0 auto; height: 450px; border-radius: 20px; overflow: hidden; border: 1px solid #eee;">
-        <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d102143.91685338002!2d-73.1258162810352!3d-36.81938531777494!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x9669b5d929949987%3A0xf639434e7978280d!2sConcepci%C3%B3n%2C%20B%C3%ADo%20B%C3%ADo!5e0!3m2!1ses!2scl!4v1711234567890!5m2!1ses!2scl" 
-            width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
+    <p style="margin-bottom: 30px; color: #666;">
+        <i class="fa-solid fa-map-pin" style="color: var(--gold);"></i> 
+        Barros Arana 514, Local 12, Concepción.
+    </p>
+    
+    <div class="map-container">
+        <iframe 
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3194.341416393933!2d-73.0514936!3d-36.8271101!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x9669b54455f9e969%3A0x658e5c38f8ed2988!2sKerly%20nails%20studio!5e0!3m2!1ses!2scl!4v1713117000000!5m2!1ses!2scl" 
+            width="100%" 
+            height="100%" 
+            style="border:0;" 
+            allowfullscreen="" 
+            loading="lazy" 
+            referrerpolicy="no-referrer-when-downgrade">
+        </iframe>
     </div>
 </section>
 
-<footer style="padding:50px; background:var(--beige); text-align:center;">
-    <img src="https://i.ibb.co/ZRFJmhvY/Logo.jpg" style="height:40px; opacity:0.5; margin-bottom:20px;">
-    <p style="font-size: 0.7rem; letter-spacing: 2px;">KERLY NAILS STUDIO © 2024 - CONCEPCIÓN</p>
-</footer>
-
-<div class="modal" id="modalR">
+<div class="modal" id="modalReserva">
     <div class="modal-content">
-        <h2 id="mTitle" style="font-family:'Playfair Display'; color:var(--gold); margin-bottom:20px;"></h2>
+        <h2 id="modalTitle" style="font-family:'Playfair Display'; color:var(--gold); margin-bottom:20px;"></h2>
         <form action="/reservar_sin_login" method="POST">
-            <input type="hidden" name="servicio_id" id="mId">
-            <input type="text" name="nombre_cliente" placeholder="Tu Nombre" required>
-            <input type="tel" name="telefono" placeholder="Tu WhatsApp" required>
-            <input type="date" name="fecha" id="fechaPicker" required onchange="actualizarHoras()">
-            <select name="hora" id="horaSelect" required>
-                <option value="" disabled selected>Elige un día</option>
+            <input type="hidden" name="servicio_id" id="serviceId">
+            <input type="text" name="nombre_cliente" placeholder="Tu nombre completo" required>
+            <input type="tel" name="telefono" placeholder="WhatsApp (ej: 912345678)" required>
+            <input type="date" name="fecha" id="datePicker" required onchange="updateHours()">
+            <select name="hora" id="hourSelect" required>
+                <option value="" disabled selected>Selecciona una fecha primero</option>
             </select>
-            <button type="submit" class="btn" style="margin-top:20px;">CONFIRMAR RESERVA</button>
-            <button type="button" onclick="closeM()" style="background:none; border:none; margin-top:15px; cursor:pointer; width:100%; color:#999;">Cerrar</button>
+            <button type="submit" class="btn" style="margin-top:20px;">CONFIRMAR POR WHATSAPP</button>
+            <button type="button" onclick="closeModal()" style="background:none; border:none; margin-top:15px; cursor:pointer; color:#999; font-size: 0.8rem;">CANCELAR</button>
         </form>
     </div>
 </div>
 
+<footer style="padding:60px 20px; background:var(--white); text-align:center; border-top: 1px solid #eee;">
+    <p style="font-size: 0.7rem; letter-spacing: 3px; color: #bbb;">KERLY NAILS STUDIO © 2026</p>
+</footer>
+
 <script>
-    const hoy = new Date().toISOString().split('T')[0];
-    document.getElementById('fechaPicker').setAttribute('min', hoy);
+    // Configurar fecha mínima (hoy)
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('datePicker').setAttribute('min', today);
 
-    function openM(id, n) { 
-        document.getElementById('mId').value = id; 
-        document.getElementById('mTitle').innerText = n; 
-        document.getElementById('modalR').style.display='flex'; 
-    }
-    function closeM() { document.getElementById('modalR').style.display='none'; }
-    function toggleF(el) {
-        const a = el.querySelector('.faq-answer');
-        a.style.display = (a.style.display === 'block') ? 'none' : 'block';
+    function openModal(id, name) { 
+        document.getElementById('serviceId').value = id; 
+        document.getElementById('modalTitle').innerText = name; 
+        document.getElementById('modalReserva').style.display='flex'; 
     }
 
-    function actualizarHoras() {
-        const fIn = document.getElementById('fechaPicker').value;
-        const sel = document.getElementById('horaSelect');
-        const d = new Date(fIn + "T00:00:00").getDay();
+    function closeModal() { 
+        document.getElementById('modalReserva').style.display='none'; 
+    }
+
+    function updateHours() {
+        const dateInput = document.getElementById('datePicker').value;
+        const select = document.getElementById('hourSelect');
+        const day = new Date(dateInput + "T00:00:00").getDay();
         
-        sel.innerHTML = '';
-        let h = [];
-        if (d >= 1 && d <= 5) h = ["09:30", "11:00", "12:30", "14:00", "15:30", "17:00", "18:30"];
-        else if (d === 6) h = ["09:30", "11:00", "12:30"];
-        else { alert("Domingos cerrado."); document.getElementById('fechaPicker').value = ""; return; }
+        select.innerHTML = '';
+        let hours = [];
 
-        h.forEach(x => { let o = document.createElement("option"); o.value = x; o.text = x; sel.add(o); });
+        // Lunes(1) a Viernes(5): 09:30 - 19:30
+        if (day >= 1 && day <= 5) {
+            hours = ["09:30", "11:00", "12:30", "14:00", "15:30", "17:00", "18:30"];
+        } 
+        // Sábados(6): 09:30 - 14:00
+        else if (day === 6) {
+            hours = ["09:30", "11:00", "12:30"];
+        } 
+        // Domingos(0): Cerrado
+        else {
+            alert("Los domingos estamos cerrados. Por favor elige otro día.");
+            document.getElementById('datePicker').value = "";
+            return;
+        }
+
+        hours.forEach(h => {
+            let opt = document.createElement("option");
+            opt.value = h;
+            opt.text = h;
+            select.add(opt);
+        });
+    }
+
+    // Cerrar modal al hacer clic fuera
+    window.onclick = function(event) {
+        if (event.target == document.getElementById('modalReserva')) {
+            closeModal();
+        }
     }
 </script>
+
 </body>
 </html>
