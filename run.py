@@ -1,7 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify
 import psycopg2
 from psycopg2.extras import RealDictCursor
-from datetime import datetime
 import os
 
 app = Flask(__name__)
@@ -25,7 +24,7 @@ def execute_query(query, params=None):
         conn.commit()
         return cur.fetchall() if cur.description else None
     except Exception as e:
-        print(f"Error en base de datos: {e}")
+        print(f"Error: {e}")
         return None
     finally:
         cur.close()
@@ -44,16 +43,16 @@ def reservar_sin_login():
     telefono = f.get('telefono')
     servicio_id = f.get('servicio_id')
     fecha = f.get('fecha')
-    hora = f.get('hora')
+    hora_seleccionada = f.get('hora') # Viene del select en home.html
 
     servicio_info = execute_query("SELECT nombre FROM servicios WHERE id = %s", (servicio_id,))
     nombre_servicio = servicio_info[0]['nombre'] if servicio_info else "Servicio"
 
-    # Guardar cita
+    # Guardamos en 'duracion_min' porque confirmaste que así se llama la columna de tiempo
     execute_query("""
-        INSERT INTO citas (nombre, telefono, servicio, fecha, hora, estado) 
+        INSERT INTO citas (nombre, telefono, servicio, fecha, duracion_min, estado) 
         VALUES (%s, %s, %s, %s, %s, 'pendiente')
-    """, (nombre_cliente, telefono, nombre_servicio, fecha, hora))
+    """, (nombre_cliente, telefono, nombre_servicio, fecha, hora_seleccionada))
 
     # Redirigir a WhatsApp
     numero_wa = "56959257968"
@@ -61,16 +60,16 @@ def reservar_sin_login():
                f"👤 *Cliente:* {nombre_cliente}\n"
                f"💅 *Servicio:* {nombre_servicio}\n"
                f"📅 *Fecha:* {fecha}\n"
-               f"⏰ *Hora:* {hora}\n\n"
+               f"⏰ *Hora:* {hora_seleccionada}\n\n"
                f"¿Está disponible?")
     
     return redirect(f"https://wa.me/{numero_wa}?text={mensaje.replace(' ', '%20').replace('\n', '%0A')}")
 
 @app.route("/get_horas_ocupadas/<fecha>")
 def get_horas_ocupadas(fecha):
-    # Trae horas de citas que no estén canceladas para bloquearlas en el home
-    citas = execute_query("SELECT hora FROM citas WHERE fecha = %s AND estado != 'cancelado'", (fecha,))
-    horas_ocupadas = [c['hora'] for c in citas] if citas else []
+    # Consultamos la columna duracion_min para ver qué horas están pilladas
+    citas = execute_query("SELECT duracion_min FROM citas WHERE fecha = %s AND estado != 'cancelado'", (fecha,))
+    horas_ocupadas = [c['duracion_min'] for c in citas] if citas else []
     return jsonify(horas_ocupadas)
 
 # --- RUTAS DE ADMINISTRACIÓN ---
@@ -87,23 +86,22 @@ def login():
 @app.route("/admin")
 def admin_dashboard():
     if session.get('rol') != 'admin': return redirect(url_for('login'))
-    citas = execute_query("SELECT * FROM citas ORDER BY fecha DESC, hora ASC")
+    # Ordenamos por duracion_min para que veas las citas del día en orden horario
+    citas = execute_query("SELECT * FROM citas ORDER BY fecha DESC, duracion_min ASC")
     servicios = execute_query("SELECT * FROM servicios ORDER BY id ASC")
     return render_template("admin_dashboard.html", citas=citas, servicios=servicios)
 
 @app.route("/admin/update_servicio", methods=["POST"])
 def update_servicio():
     if session.get('rol') != 'admin': return redirect(url_for('login'))
-    
     f = request.form
-    # Se incluye duracion_min para el catálogo
+    # Actualizamos imagen_url y duracion_min en la tabla servicios
     execute_query("""
         UPDATE servicios 
         SET nombre = %s, descripcion = %s, precio = %s, imagen_url = %s, duracion_min = %s
         WHERE id = %s
     """, (f['nombre'], f['descripcion'], f['precio'], f['imagen_url'], f.get('duracion_min', 60), f['id']))
-    
-    flash("Servicio actualizado con éxito.")
+    flash("Catálogo actualizado.")
     return redirect(url_for('admin_dashboard'))
 
 @app.route("/admin/delete_cita/<int:id>")
@@ -117,7 +115,7 @@ def delete_cita(id):
 def delete_servicio(id):
     if session.get('rol') != 'admin': return redirect(url_for('login'))
     execute_query("DELETE FROM servicios WHERE id = %s", (id,))
-    flash("Servicio eliminado del catálogo.")
+    flash("Servicio eliminado.")
     return redirect(url_for('admin_dashboard'))
 
 @app.route("/logout")
