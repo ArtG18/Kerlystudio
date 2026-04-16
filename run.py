@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, session
+from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify
 import psycopg2
 from psycopg2.extras import RealDictCursor
 from datetime import datetime
@@ -25,27 +25,17 @@ def execute_query(query, params=None):
         conn.commit()
         return cur.fetchall() if cur.description else None
     except Exception as e:
-        print(f"Error: {e}")
+        print(f"Error en base de datos: {e}")
         return None
     finally:
         cur.close()
         conn.close()
 
-# --- RUTAS ---
+# --- RUTAS DE CLIENTE ---
 @app.route("/")
 def home():
     servicios = execute_query("SELECT * FROM servicios WHERE activo = TRUE ORDER BY id ASC")
     return render_template("home.html", servicios=servicios)
-
-@app.route("/login", methods=["GET", "POST"])
-def login():
-    if request.method == "POST":
-        u, p = request.form.get('username'), request.form.get('password')
-        if u == os.environ.get('ADMIN_EMAIL') and p == os.environ.get('ADMIN_PASSWORD'):
-            session.update({'user_id': 1, 'rol': 'admin'})
-            return redirect(url_for('admin_dashboard'))
-        flash("Credenciales incorrectas")
-    return render_template("login.html")
 
 @app.route("/reservar_sin_login", methods=["POST"])
 def reservar_sin_login():
@@ -56,17 +46,16 @@ def reservar_sin_login():
     fecha = f.get('fecha')
     hora = f.get('hora')
 
-    # Obtenemos el nombre del servicio para el mensaje
     servicio_info = execute_query("SELECT nombre FROM servicios WHERE id = %s", (servicio_id,))
     nombre_servicio = servicio_info[0]['nombre'] if servicio_info else "Servicio"
 
-    # 1. Guardar en la base de datos
+    # Guardar cita
     execute_query("""
         INSERT INTO citas (nombre, telefono, servicio, fecha, hora, estado) 
         VALUES (%s, %s, %s, %s, %s, 'pendiente')
     """, (nombre_cliente, telefono, nombre_servicio, fecha, hora))
 
-    # 2. Redirigir a WhatsApp con mensaje automático
+    # Redirigir a WhatsApp
     numero_wa = "56959257968"
     mensaje = (f"¡Hola Kerly! ✨ Quiero agendar una cita:\n\n"
                f"👤 *Cliente:* {nombre_cliente}\n"
@@ -79,53 +68,54 @@ def reservar_sin_login():
 
 @app.route("/get_horas_ocupadas/<fecha>")
 def get_horas_ocupadas(fecha):
-    # Solo traemos horas de citas que estén 'confirmadas' o 'pendientes'
+    # Trae horas de citas que no estén canceladas para bloquearlas en el home
     citas = execute_query("SELECT hora FROM citas WHERE fecha = %s AND estado != 'cancelado'", (fecha,))
-    horas_ocupadas = [c['hora'] for c in citas]
+    horas_ocupadas = [c['hora'] for c in citas] if citas else []
     return jsonify(horas_ocupadas)
+
+# --- RUTAS DE ADMINISTRACIÓN ---
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if request.method == "POST":
+        u, p = request.form.get('username'), request.form.get('password')
+        if u == os.environ.get('ADMIN_EMAIL') and p == os.environ.get('ADMIN_PASSWORD'):
+            session.update({'user_id': 1, 'rol': 'admin'})
+            return redirect(url_for('admin_dashboard'))
+        flash("Credenciales incorrectas")
+    return render_template("login.html")
 
 @app.route("/admin")
 def admin_dashboard():
     if session.get('rol') != 'admin': return redirect(url_for('login'))
-    # Consulta segura: si 'hora' no existe, no romperá el sitio
-    citas = execute_query("SELECT * FROM citas ORDER BY fecha DESC")
+    citas = execute_query("SELECT * FROM citas ORDER BY fecha DESC, hora ASC")
     servicios = execute_query("SELECT * FROM servicios ORDER BY id ASC")
     return render_template("admin_dashboard.html", citas=citas, servicios=servicios)
 
-# --- ACCIONES CITAS ---
 @app.route("/admin/update_servicio", methods=["POST"])
 def update_servicio():
     if session.get('rol') != 'admin': return redirect(url_for('login'))
     
     f = request.form
-    # Usamos 'imagen_url' que es la columna que confirmamos en tu tabla
+    # Se incluye duracion_min para el catálogo
     execute_query("""
         UPDATE servicios 
-        SET nombre = %s, descripcion = %s, precio = %s, imagen_url = %s 
+        SET nombre = %s, descripcion = %s, precio = %s, imagen_url = %s, duracion_min = %s
         WHERE id = %s
-    """, (f['nombre'], f['descripcion'], f['precio'], f['imagen_url'], f['id']))
+    """, (f['nombre'], f['descripcion'], f['precio'], f['imagen_url'], f.get('duracion_min', 60), f['id']))
     
-    flash("Servicio actualizado con éxito en el catálogo.")
+    flash("Servicio actualizado con éxito.")
     return redirect(url_for('admin_dashboard'))
 
 @app.route("/admin/delete_cita/<int:id>")
 def delete_cita(id):
+    if session.get('rol') != 'admin': return redirect(url_for('login'))
     execute_query("DELETE FROM citas WHERE id = %s", (id,))
     flash("Cita eliminada.")
     return redirect(url_for('admin_dashboard'))
 
-# --- ACCIONES CATÁLOGO ---
-@app.route("/admin/update_servicio", methods=["POST"])
-def update_servicio():
-    f = request.form
-    execute_query("""
-        UPDATE servicios SET nombre=%s, descripcion=%s, precio=%s, imagen_url=%s 
-        WHERE id=%s""", (f['nombre'], f['descripcion'], f['precio'], f['imagen_url'], f['id']))
-    flash("Servicio actualizado en el Home.")
-    return redirect(url_for('admin_dashboard'))
-
 @app.route("/admin/delete_servicio/<int:id>")
 def delete_servicio(id):
+    if session.get('rol') != 'admin': return redirect(url_for('login'))
     execute_query("DELETE FROM servicios WHERE id = %s", (id,))
     flash("Servicio eliminado del catálogo.")
     return redirect(url_for('admin_dashboard'))
