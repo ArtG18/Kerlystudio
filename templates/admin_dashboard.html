@@ -7,7 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root { --beige: #F5F5F0; --gold: #D4A373; --dark: #1A1A1A; --white: #FFFFFF; }
+        :root { --beige: #F5F5F0; --gold: #D4A373; --dark: #1A1A1A; --white: #FFFFFF; --green: #27AE60; --red: #E74C3C; }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Montserrat', sans-serif; background-color: var(--beige); color: var(--dark); }
         
@@ -26,9 +26,16 @@
         table { width: 100%; border-collapse: collapse; }
         th { text-align: left; padding: 12px; color: var(--gold); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid #eee; }
         td { padding: 15px; border-bottom: 1px solid #f9f9f9; font-size: 0.85rem; }
+        
         .badge { padding: 4px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; }
         .pendiente { background: #FFF9E6; color: #D4A017; }
         .confirmada { background: #E6F9ED; color: #27AE60; }
+        .cancelada { background: #FDEAEA; color: #E74C3C; }
+
+        .btn-action { text-decoration: none; padding: 6px 12px; border-radius: 4px; font-size: 0.7rem; font-weight: 700; color: white; transition: 0.3s; }
+        .btn-confirm { background-color: var(--green); }
+        .btn-cancel { background-color: var(--red); }
+        .btn-action:hover { opacity: 0.8; transform: scale(1.05); }
 
         /* Estilos Editor Servicios */
         .service-form { background: #FAFAFA; padding: 20px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #EEE; }
@@ -54,7 +61,7 @@
 
     <div class="grid">
         <div class="card">
-            <h2 class="card-title">Gestión de Citas</h2>
+            <h2 class="card-title"><i class="fas fa-calendar-alt"></i> Gestión de Citas</h2>
             <table>
                 <thead>
                     <tr>
@@ -73,7 +80,14 @@
                         <td>{{ c.fecha }}<br><span style="color:var(--gold)">{{ c.hora }}</span></td>
                         <td><span class="badge {{ c.estado }}">{{ c.estado }}</span></td>
                         <td>
-                            <a href="/admin/update_cita/{{ c.id }}/confirmada" style="color:var(--gold); text-decoration:none; font-size:0.7rem; font-weight:700">CONFIRMAR</a>
+                            <div style="display: flex; gap: 8px;">
+                                <a href="/admin/update_cita/{{ c.id }}/confirmada" class="btn-action btn-confirm" title="Confirmar">
+                                    <i class="fas fa-check"></i>
+                                </a>
+                                <a href="/admin/update_cita/{{ c.id }}/cancelada" class="btn-action btn-cancel" title="Cancelar" onclick="return confirm('¿Segura que deseas cancelar?')">
+                                    <i class="fas fa-times"></i>
+                                </a>
+                            </div>
                         </td>
                     </tr>
                     {% endfor %}
@@ -82,7 +96,7 @@
         </div>
 
         <div class="card">
-            <h2 class="card-title">Editar Catálogo</h2>
+            <h2 class="card-title"><i class="fas fa-gem"></i> Editar Catálogo</h2>
             {% for s in servicios %}
             <form action="/admin/update_servicio" method="POST" class="service-form">
                 <input type="hidden" name="id" value="{{ s.id }}">
@@ -99,7 +113,7 @@
                         <input type="number" name="precio" value="{{ s.precio }}" class="input-luxe">
                     </div>
                     <div>
-                        <label>URL Imagen (ImgBB/Link)</label>
+                        <label>URL Imagen (ImgBB)</label>
                         <input type="text" name="imagen_url" value="{{ s.imagen_url }}" class="input-luxe">
                     </div>
                 </div>
