@@ -47,6 +47,43 @@ def login():
         flash("Credenciales incorrectas")
     return render_template("login.html")
 
+@app.route("/reservar_sin_login", methods=["POST"])
+def reservar_sin_login():
+    f = request.form
+    nombre_cliente = f.get('nombre_cliente')
+    telefono = f.get('telefono')
+    servicio_id = f.get('servicio_id')
+    fecha = f.get('fecha')
+    hora = f.get('hora')
+
+    # Obtenemos el nombre del servicio para el mensaje
+    servicio_info = execute_query("SELECT nombre FROM servicios WHERE id = %s", (servicio_id,))
+    nombre_servicio = servicio_info[0]['nombre'] if servicio_info else "Servicio"
+
+    # 1. Guardar en la base de datos
+    execute_query("""
+        INSERT INTO citas (nombre, telefono, servicio, fecha, hora, estado) 
+        VALUES (%s, %s, %s, %s, %s, 'pendiente')
+    """, (nombre_cliente, telefono, nombre_servicio, fecha, hora))
+
+    # 2. Redirigir a WhatsApp con mensaje automático
+    numero_wa = "56959257968"
+    mensaje = (f"¡Hola Kerly! ✨ Quiero agendar una cita:\n\n"
+               f"👤 *Cliente:* {nombre_cliente}\n"
+               f"💅 *Servicio:* {nombre_servicio}\n"
+               f"📅 *Fecha:* {fecha}\n"
+               f"⏰ *Hora:* {hora}\n\n"
+               f"¿Está disponible?")
+    
+    return redirect(f"https://wa.me/{numero_wa}?text={mensaje.replace(' ', '%20').replace('\n', '%0A')}")
+
+@app.route("/get_horas_ocupadas/<fecha>")
+def get_horas_ocupadas(fecha):
+    # Solo traemos horas de citas que estén 'confirmadas' o 'pendientes'
+    citas = execute_query("SELECT hora FROM citas WHERE fecha = %s AND estado != 'cancelado'", (fecha,))
+    horas_ocupadas = [c['hora'] for c in citas]
+    return jsonify(horas_ocupadas)
+
 @app.route("/admin")
 def admin_dashboard():
     if session.get('rol') != 'admin': return redirect(url_for('login'))
@@ -56,9 +93,19 @@ def admin_dashboard():
     return render_template("admin_dashboard.html", citas=citas, servicios=servicios)
 
 # --- ACCIONES CITAS ---
-@app.route("/admin/update_cita/<int:id>/<estado>")
-def update_cita(id, estado):
-    execute_query("UPDATE citas SET estado = %s WHERE id = %s", (estado, id))
+@app.route("/admin/update_servicio", methods=["POST"])
+def update_servicio():
+    if session.get('rol') != 'admin': return redirect(url_for('login'))
+    
+    f = request.form
+    # Usamos 'imagen_url' que es la columna que confirmamos en tu tabla
+    execute_query("""
+        UPDATE servicios 
+        SET nombre = %s, descripcion = %s, precio = %s, imagen_url = %s 
+        WHERE id = %s
+    """, (f['nombre'], f['descripcion'], f['precio'], f['imagen_url'], f['id']))
+    
+    flash("Servicio actualizado con éxito en el catálogo.")
     return redirect(url_for('admin_dashboard'))
 
 @app.route("/admin/delete_cita/<int:id>")

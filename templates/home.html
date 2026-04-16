@@ -25,54 +25,33 @@
             line-height: 1.6;
         }
 
-        /* NAVBAR CON LOGO CIRCULAR */
+        /* NAVBAR PROFESIONAL */
         nav { 
-            position: fixed; 
-            top: 0; 
-            width: 100%; 
-            padding: 10px 8%; 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            background: rgba(255,255,255,0.98); 
-            backdrop-filter: blur(10px); 
-            z-index: 1000; 
-            border-bottom: 1px solid #eee; 
+            position: fixed; top: 0; width: 100%; padding: 10px 8%; 
+            display: flex; justify-content: space-between; align-items: center; 
+            background: rgba(255,255,255,0.98); backdrop-filter: blur(10px); 
+            z-index: 1000; border-bottom: 1px solid #eee; 
         }
 
         .logo-img { 
-            height: 60px; 
-            width: 60px; 
-            object-fit: cover; 
-            border-radius: 50%; 
-            border: 2px solid var(--gold);
-            padding: 2px;
-            background: white;
+            height: 60px; width: 60px; object-fit: cover; border-radius: 50%; 
+            border: 2px solid var(--gold); padding: 2px; background: white;
         }
 
         .nav-links { display: flex; align-items: center; gap: 30px; }
         .nav-links a { 
-            text-decoration: none; 
-            color: var(--black); 
-            font-size: 0.75rem; 
-            font-weight: 600; 
-            letter-spacing: 2px;
-            text-transform: uppercase;
+            text-decoration: none; color: var(--black); font-size: 0.75rem; 
+            font-weight: 600; letter-spacing: 2px; text-transform: uppercase;
         }
 
         /* PORTADA */
         header { 
             height: 90vh; 
             background: linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.2)), url('https://i.ibb.co/pvGc8rbc/portada.jpg') center/cover; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            text-align: center; 
-            color: white; 
-            margin-top: 60px;
+            display: flex; align-items: center; justify-content: center; text-align: center; color: white; margin-top: 60px;
         }
 
-        /* SECCIONES Y GRILLA */
+        /* GRILLA DE SERVICIOS */
         .section { padding: 100px 10%; text-align: center; }
         .section-title { font-family: 'Playfair Display', serif; font-size: 2.8rem; margin-bottom: 50px; }
         
@@ -82,27 +61,11 @@
         .card img { width: 100%; height: 350px; object-fit: cover; margin-bottom: 25px; }
 
         .btn-reserva { 
-            background: transparent; 
-            color: var(--gold); 
-            padding: 14px 30px; 
-            border: 1px solid var(--gold); 
-            cursor: pointer; 
-            font-weight: 600; 
-            text-transform: uppercase;
-            transition: 0.4s;
+            background: transparent; color: var(--gold); padding: 14px 30px; 
+            border: 1px solid var(--gold); cursor: pointer; font-weight: 600; 
+            text-transform: uppercase; transition: 0.4s; width: 100%;
         }
         .btn-reserva:hover { background: var(--gold); color: white; }
-
-        /* FOOTER CON LOGO CIRCULAR */
-        footer { padding: 60px 20px; text-align: center; border-top: 1px solid #eee; }
-        .footer-logo { 
-            height: 50px; 
-            width: 50px; 
-            border-radius: 50%; 
-            object-fit: cover; 
-            border: 1.5px solid var(--gold);
-            margin-bottom: 20px;
-        }
 
         /* MODAL */
         .modal { 
@@ -110,7 +73,10 @@
             background: rgba(0,0,0,0.6); display: none; justify-content: center; 
             align-items: center; z-index: 2000; 
         }
-        .modal-content { background: white; padding: 40px; width: 95%; max-width: 420px; border-radius: 10px; }
+        .modal-content { background: white; padding: 40px; width: 95%; max-width: 420px; border-radius: 10px; text-align: center; }
+
+        footer { padding: 60px 20px; text-align: center; border-top: 1px solid #eee; }
+        .footer-logo { height: 50px; width: 50px; border-radius: 50%; object-fit: cover; border: 1.5px solid var(--gold); margin-bottom: 20px; }
     </style>
 </head>
 <body>
@@ -138,7 +104,10 @@
         <div class="card">
             <img src="{{ s.imagen_url }}" alt="{{ s.nombre }}">
             <h3>{{ s.nombre }}</h3>
-            <p style="font-size: 0.85rem; color: #777; margin-bottom: 15px;">{{ s.descripcion }}</p>
+            <p style="font-size: 0.85rem; color: #777; margin-bottom: 5px;">{{ s.descripcion }}</p>
+            <p style="font-size: 0.75rem; color: var(--gold); font-weight: 600; margin-bottom: 15px;">
+                <i class="fa-regular fa-clock"></i> {{ s.duracion_min }} min
+            </p>
             <span style="color:var(--gold); font-weight:600; display:block; margin-bottom:20px;">${{ s.precio }}</span>
             <button class="btn-reserva" onclick="openModal('{{ s.id }}', '{{ s.nombre }}')">Agendar Cita</button>
         </div>
@@ -146,17 +115,98 @@
     </div>
 </section>
 
+<div id="modalReserva" class="modal">
+    <div class="modal-content">
+        <h2 id="modalTitle" style="font-family:'Playfair Display'; margin-bottom:20px;"></h2>
+        <form action="/reservar_sin_login" method="POST" id="formReserva">
+            <input type="hidden" name="servicio_id" id="serviceId">
+            
+            <input type="text" name="nombre_cliente" placeholder="Nombre completo" required 
+                   style="width:100%; padding:10px; margin-bottom:10px; border:1px solid #ddd; border-radius:5px;">
+            
+            <input type="tel" name="telefono" placeholder="WhatsApp (ej: +569...)" required 
+                   style="width:100%; padding:10px; margin-bottom:10px; border:1px solid #ddd; border-radius:5px;">
+            
+            <label style="font-size:0.7rem; color:var(--gold); font-weight:700; display:block; text-align:left;">FECHA</label>
+            <input type="date" name="fecha" id="datePicker" onchange="updateHours()" required 
+                   style="width:100%; padding:10px; margin-bottom:10px; border:1px solid #ddd; border-radius:5px;">
+            
+            <label style="font-size:0.7rem; color:var(--gold); font-weight:700; display:block; text-align:left;">HORA DISPONIBLE</label>
+            <select name="hora" id="hourSelect" required 
+                    style="width:100%; padding:10px; margin-bottom:20px; border:1px solid #ddd; border-radius:5px;">
+                <option value="">Selecciona una fecha</option>
+            </select>
+            
+            <div style="display:flex; gap:10px;">
+                <button type="submit" class="btn-reserva" style="flex:2;">Confirmar</button>
+                <button type="button" onclick="closeModal()" style="flex:1; background:#eee; border:none; cursor:pointer;">Cerrar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <footer>
     <img src="https://i.ibb.co/ZRFJmhvY/Logo.jpg" class="footer-logo" alt="Logo">
     <p style="font-size:0.7rem; color:#999; letter-spacing:2px;">KERLY NAILS STUDIO © 2026</p>
 </footer>
 
 <script>
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('datePicker').setAttribute('min', today);
+
     function openModal(id, name) { 
+        document.getElementById('serviceId').value = id; 
         document.getElementById('modalTitle').innerText = name; 
         document.getElementById('modalReserva').style.display='flex'; 
     }
+
     function closeModal() { document.getElementById('modalReserva').style.display='none'; }
+
+    async function updateHours() {
+        const dateInput = document.getElementById('datePicker').value;
+        const select = document.getElementById('hourSelect');
+        const day = new Date(dateInput + "T00:00:00").getDay();
+        
+        select.innerHTML = '<option value="">Consultando disponibilidad...</option>';
+        
+        // Bloqueo de horarios ya reservados
+        const response = await fetch(`/get_horas_ocupadas/${dateInput}`);
+        const ocupadas = await response.json();
+
+        let baseHours = [];
+        // Horario Kerly Nails Studio
+        if (day >= 1 && day <= 5) { // Lun-Vie
+            baseHours = ["09:30", "11:00", "12:30", "14:00", "15:30", "17:00"];
+        } else if (day === 6) { // Sáb
+            baseHours = ["09:30", "11:00", "12:30"];
+        } else {
+            alert("Los domingos el estudio permanece cerrado.");
+            document.getElementById('datePicker').value = "";
+            return;
+        }
+
+        select.innerHTML = '';
+        baseHours.forEach(h => {
+            let option = document.createElement('option');
+            option.value = h;
+            if (ocupadas.includes(h)) {
+                option.text = h + " hrs (Ocupado)";
+                option.disabled = true;
+                option.style.color = "#ccc";
+            } else {
+                option.text = h + " hrs";
+            }
+            select.appendChild(option);
+        });
+    }
+
+    document.getElementById('formReserva').onsubmit = function() {
+        alert("¡Cita solicitada! ✨ Serás redirigida a WhatsApp para confirmar.");
+    };
+
+    window.onclick = function(event) {
+        if (event.target == document.getElementById('modalReserva')) closeModal();
+    }
 </script>
 </body>
 </html>
