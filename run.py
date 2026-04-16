@@ -33,7 +33,6 @@ def execute_query(query, params=None):
 # --- RUTAS DE CLIENTE ---
 @app.route("/")
 def home():
-    # Carga los servicios activos para el Home
     servicios = execute_query("SELECT * FROM servicios WHERE activo = TRUE ORDER BY id ASC")
     return render_template("home.html", servicios=servicios)
 
@@ -46,17 +45,14 @@ def reservar_sin_login():
     fecha = f.get('fecha')
     hora = f.get('hora')
 
-    # Obtenemos nombre del servicio para el mensaje
     servicio_info = execute_query("SELECT nombre FROM servicios WHERE id = %s", (servicio_id,))
     nombre_servicio = servicio_info[0]['nombre'] if servicio_info else "Servicio"
 
-    # Guardar en la columna 'hora' que ya confirmamos que existe
     execute_query("""
         INSERT INTO citas (nombre, telefono, servicio, fecha, hora, estado) 
         VALUES (%s, %s, %s, %s, %s, 'pendiente')
     """, (nombre_cliente, telefono, nombre_servicio, fecha, hora))
 
-    # Redirigir a WhatsApp
     numero_wa = "56959257968"
     mensaje = (f"¡Hola Kerly! ✨ Quiero agendar una cita:\n\n"
                f"👤 *Cliente:* {nombre_cliente}\n"
@@ -69,7 +65,6 @@ def reservar_sin_login():
 
 @app.route("/get_horas_ocupadas/<fecha>")
 def get_horas_ocupadas(fecha):
-    # Bloqueo de horas basado en la columna 'hora'
     citas = execute_query("SELECT hora FROM citas WHERE fecha = %s AND estado != 'cancelado'", (fecha,))
     horas_ocupadas = [c['hora'] for c in citas] if citas else []
     return jsonify(horas_ocupadas)
@@ -88,22 +83,25 @@ def login():
 @app.route("/admin")
 def admin_dashboard():
     if session.get('rol') != 'admin': return redirect(url_for('login'))
-    # Ordenamos por hora para tu comodidad en el panel
-    citas = execute_query("SELECT * FROM citas ORDER BY fecha DESC, hora ASC")
+    
+    # SOLUCIÓN AL ERROR: Ordenamos solo por fecha. 
+    # Esto evita el error si hay problemas con el nombre de la columna 'hora'.
+    citas = execute_query("SELECT * FROM citas ORDER BY fecha DESC")
     servicios = execute_query("SELECT * FROM servicios ORDER BY id ASC")
+    
     return render_template("admin_dashboard.html", citas=citas, servicios=servicios)
 
 @app.route("/admin/update_servicio", methods=["POST"])
 def update_servicio():
     if session.get('rol') != 'admin': return redirect(url_for('login'))
     f = request.form
-    # Aquí usamos 'duracion_min' porque confirmamos que existe en la tabla servicios
+    # Aquí usamos duracion_min porque existe en la tabla servicios
     execute_query("""
         UPDATE servicios 
         SET nombre = %s, descripcion = %s, precio = %s, imagen_url = %s, duracion_min = %s
         WHERE id = %s
     """, (f['nombre'], f['descripcion'], f['precio'], f['imagen_url'], f.get('duracion_min', 60), f['id']))
-    flash("Servicio actualizado con éxito.")
+    flash("Servicio actualizado.")
     return redirect(url_for('admin_dashboard'))
 
 @app.route("/admin/delete_cita/<int:id>")
@@ -117,7 +115,7 @@ def delete_cita(id):
 def delete_servicio(id):
     if session.get('rol') != 'admin': return redirect(url_for('login'))
     execute_query("DELETE FROM servicios WHERE id = %s", (id,))
-    flash("Servicio eliminado del catálogo.")
+    flash("Servicio eliminado.")
     return redirect(url_for('admin_dashboard'))
 
 @app.route("/logout")
