@@ -4,190 +4,50 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Acceso Admin | Kerly Nails Studio</title>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
     <style>
-        :root { 
-            --gold: #D4A373; 
-            --black: #1A1A1A; 
-            --white: #FFFFFF; 
-            --beige: #F5F5F0; 
-        }
-
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root { --gold: #D4A373; --black: #1A1A1A; --beige: #F5F5F0; }
+        body { font-family: 'Montserrat', sans-serif; background-color: var(--beige); display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
         
-        body { 
-            font-family: 'Montserrat', sans-serif; 
-            background-color: var(--beige); /* Fondo beige como el footer */
-            color: var(--black);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-        }
-
-        .login-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            width: 100%;
-            max-width: 400px;
-            padding: 20px;
-        }
-
-        /* Logo Grande Fuera de la Tarjeta */
-        .main-logo { 
-            height: 80px; 
-            margin-bottom: 40px; 
-            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
-        }
-
-        /* Tarjeta de Login Limpia */
         .login-card {
-            background: var(--white);
-            width: 100%;
-            padding: 50px 40px;
-            border-radius: 15px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.05);
-            text-align: center;
-            border: 1px solid #eee;
+            background: white; width: 100%; max-width: 380px; padding: 50px 40px; 
+            border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.05); text-align: center;
         }
 
-        /* Título Principal */
-        h1 { 
-            font-family: 'Playfair Display', serif; 
-            font-size: 2rem; 
-            color: var(--gold); /* El Dorado como color principal */
-            margin-bottom: 10px;
-            font-weight: 700;
+        /* LOGO CIRCULAR LOGIN */
+        .logo-admin { 
+            height: 90px; width: 90px; border-radius: 50%; object-fit: cover; 
+            border: 3px solid var(--gold); margin-bottom: 30px; padding: 3px; background: white;
         }
 
-        /* Subtítulo */
-        .subtitle {
-            font-size: 0.8rem;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            color: #888;
-            margin-bottom: 35px;
-        }
+        h1 { font-family: 'Playfair Display', serif; font-size: 1.8rem; color: var(--black); margin-bottom: 5px; }
+        .subtitle { font-size: 0.75rem; letter-spacing: 2px; color: #888; margin-bottom: 35px; text-transform: uppercase; }
 
-        /* Estilo de Formulario */
-        .form-group { text-align: left; margin-bottom: 25px; }
+        input { width: 100%; padding: 14px; margin-bottom: 15px; border: 1px solid #eee; border-radius: 10px; background: #FAFAFA; box-sizing: border-box; }
         
-        .form-label { 
-            font-size: 0.75rem; 
-            font-weight: 600; 
-            text-transform: uppercase; 
-            letter-spacing: 1.5px; 
-            color: #555;
-            margin-bottom: 8px;
-            display: block;
+        .btn-admin { 
+            background: var(--black); color: white; border: none; width: 100%; padding: 16px; 
+            border-radius: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 2px; cursor: pointer; transition: 0.3s;
         }
-
-        .form-control {
-            width: 100%;
-            padding: 14px 18px;
-            border: 1px solid #e0e0e0;
-            border-radius: 8px;
-            background: #FAFAFA;
-            font-family: 'Montserrat', sans-serif;
-            font-size: 0.9rem;
-            box-sizing: border-box;
-            transition: 0.3s ease;
-        }
-
-        .form-control:focus {
-            outline: none;
-            border-color: var(--gold);
-            background: var(--white);
-            box-shadow: 0 0 0 3px rgba(212, 163, 115, 0.15);
-        }
-
-        /* El Botón de Oro */
-        .btn-admin {
-            background: var(--black);
-            color: var(--white);
-            border: none;
-            width: 100%;
-            padding: 16px;
-            border-radius: 8px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            font-size: 0.8rem;
-            cursor: pointer;
-            transition: 0.4s ease;
-            margin-top: 10px;
-        }
-
-        .btn-admin:hover {
-            background: var(--gold);
-            color: var(--black);
-            transform: translateY(-2px);
-        }
-
-        /* Mensajes de Error */
-        .error-msg {
-            background: #fdf2f2;
-            color: #9b1c1c;
-            padding: 12px;
-            border-radius: 8px;
-            font-size: 0.8rem;
-            margin-bottom: 25px;
-            border: 1px solid #f8b4b4;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-        }
-
-        .back-home {
-            display: block;
-            margin-top: 30px;
-            font-size: 0.85rem;
-            color: var(--gold);
-            text-decoration: none;
-            font-weight: 600;
-            transition: 0.3s;
-        }
-        .back-home:hover { color: var(--black); }
-
+        .btn-admin:hover { background: var(--gold); transform: translateY(-2px); }
+        
+        .back { display: block; margin-top: 25px; font-size: 0.8rem; color: var(--gold); text-decoration: none; font-weight: 600; }
     </style>
 </head>
 <body>
 
-<div class="login-container">
-    <img src="https://i.ibb.co/ZRFJmhvY/Logo.jpg" alt="Kerly Nails Studio" class="main-logo">
+<div class="login-card">
+    <img src="https://i.ibb.co/ZRFJmhvY/Logo.jpg" class="logo-admin" alt="Logo">
+    <h1>Admin</h1>
+    <p class="subtitle">Gestión del Studio</p>
     
-    <div class="login-card">
-        <h1>Admin</h1>
-        <p class="subtitle">GESTIÓN INTERNA</p>
-        
-        {% with messages = get_flashed_messages() %}
-          {% if messages %}
-            {% for m in messages %}
-                <div class="error-msg">
-                    <i class="fa-solid fa-circle-xmark"></i>
-                    {{ m }}
-                </div>
-            {% endfor %}
-          {% endif %}
-        {% endwith %}
-
-        <form action="/login" method="POST">
-            <div class="form-group">
-                <label class="form-label">Usuario</label>
-                <input type="text" name="username" class="form-control" placeholder="Ej: kerly_admin" required>
-            </div>
-            <div class="form-group">
-                <label class="form-label">Contraseña</label>
-                <input type="password" name="password" class="form-control" placeholder="••••••••" required>
-            </div>
-            <button type="submit" class="btn-admin">Entrar al Panel</button>
-        </form>
-        
-        <a href="/" class="back-home">← Volver a la página principal</a>
-    </div>
+    <form action="/login" method="POST">
+        <input type="email" name="username" placeholder="Correo electrónico" required>
+        <input type="password" name="password" placeholder="Contraseña" required>
+        <button type="submit" class="btn-admin">Entrar al Panel</button>
+    </form>
+    
+    <a href="/" class="back">← Volver al inicio</a>
 </div>
 
 </body>

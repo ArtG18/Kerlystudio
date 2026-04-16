@@ -16,8 +16,7 @@
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        
-        html { scroll-behavior: smooth; } /* Movimiento suave al navegar */
+        html { scroll-behavior: smooth; }
 
         body { 
             font-family: 'Montserrat', sans-serif; 
@@ -26,12 +25,12 @@
             line-height: 1.6;
         }
 
-        /* BARRA DE NAVEGACIÓN (NAVBAR) */
+        /* NAVBAR CON LOGO CIRCULAR */
         nav { 
             position: fixed; 
             top: 0; 
             width: 100%; 
-            padding: 15px 8%; 
+            padding: 10px 8%; 
             display: flex; 
             justify-content: space-between; 
             align-items: center; 
@@ -41,7 +40,15 @@
             border-bottom: 1px solid #eee; 
         }
 
-        .logo-img { height: 50px; }
+        .logo-img { 
+            height: 60px; 
+            width: 60px; 
+            object-fit: cover; 
+            border-radius: 50%; 
+            border: 2px solid var(--gold);
+            padding: 2px;
+            background: white;
+        }
 
         .nav-links { display: flex; align-items: center; gap: 30px; }
         .nav-links a { 
@@ -50,20 +57,10 @@
             font-size: 0.75rem; 
             font-weight: 600; 
             letter-spacing: 2px;
-            transition: 0.3s;
             text-transform: uppercase;
         }
-        .nav-links a:hover { color: var(--gold); }
 
-        /* ICONO DE UBICACIÓN EN EL MENÚ */
-        .nav-icon-link {
-            font-size: 1.2rem;
-            color: var(--gold) !important;
-            transition: 0.3s;
-        }
-        .nav-icon-link:hover { transform: scale(1.2); }
-
-        /* PORTADA (HERO) */
+        /* PORTADA */
         header { 
             height: 90vh; 
             background: linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.2)), url('https://i.ibb.co/pvGc8rbc/portada.jpg') center/cover; 
@@ -74,104 +71,46 @@
             color: white; 
             margin-top: 60px;
         }
-        header h1 { 
-            font-family: 'Playfair Display', serif; 
-            font-size: clamp(2.5rem, 8vw, 5rem); 
-            letter-spacing: 2px;
-        }
 
-        /* SECCIONES */
+        /* SECCIONES Y GRILLA */
         .section { padding: 100px 10%; text-align: center; }
-        .section-title { 
-            font-family: 'Playfair Display', serif; 
-            font-size: 2.8rem; 
-            margin-bottom: 50px; 
-            color: var(--black);
-        }
-        .section-title::after {
-            content: ''; display: block; width: 60px; height: 1.5px; background: var(--gold); margin: 20px auto;
-        }
-
-        /* GRILLA DE SERVICIOS */
+        .section-title { font-family: 'Playfair Display', serif; font-size: 2.8rem; margin-bottom: 50px; }
+        
         .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 40px; }
-        .card { 
-            background: white; 
-            padding: 30px; 
-            border-radius: 0; /* Estilo minimalista */
-            transition: 0.4s; 
-            border: 1px solid #f2f2f2;
-        }
+        .card { background: white; padding: 30px; border: 1px solid #f2f2f2; transition: 0.4s; }
         .card:hover { box-shadow: 0 15px 40px rgba(0,0,0,0.05); }
         .card img { width: 100%; height: 350px; object-fit: cover; margin-bottom: 25px; }
-        .card h3 { font-family: 'Playfair Display', serif; font-size: 1.4rem; margin-bottom: 10px; }
-        .price { color: var(--gold); font-weight: 600; font-size: 1.1rem; display: block; margin-bottom: 25px; }
 
-        /* BOTÓN DE RESERVA (ARREGLADO) */
         .btn-reserva { 
             background: transparent; 
             color: var(--gold); 
             padding: 14px 30px; 
             border: 1px solid var(--gold); 
             cursor: pointer; 
-            letter-spacing: 2px; 
             font-weight: 600; 
-            width: 100%; 
-            transition: 0.4s; 
-            font-size: 0.75rem;
             text-transform: uppercase;
+            transition: 0.4s;
         }
-        .btn-reserva:hover { 
-            background: var(--gold); 
-            color: white; 
-        }
+        .btn-reserva:hover { background: var(--gold); color: white; }
 
-        /* SECCIÓN UBICACIÓN */
-        #ubicacion { background-color: var(--beige); }
-        .map-container {
-            width: 100%;
-            max-width: 1100px;
-            margin: 0 auto;
-            height: 500px;
-            border-radius: 15px;
-            overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
-            border: 1px solid #eee;
+        /* FOOTER CON LOGO CIRCULAR */
+        footer { padding: 60px 20px; text-align: center; border-top: 1px solid #eee; }
+        .footer-logo { 
+            height: 50px; 
+            width: 50px; 
+            border-radius: 50%; 
+            object-fit: cover; 
+            border: 1.5px solid var(--gold);
+            margin-bottom: 20px;
         }
-
-        /* WHATSAPP FLOAT */
-        .whatsapp-float { 
-            position: fixed; width: 60px; height: 60px; bottom: 30px; right: 30px; 
-            background: #25d366; color: white; border-radius: 50px; text-align: center; 
-            font-size: 30px; display: flex; align-items: center; justify-content: center; 
-            z-index: 1000; text-decoration: none; box-shadow: 0 8px 20px rgba(0,0,0,0.15); 
-            transition: 0.3s;
-        }
-        .whatsapp-float:hover { transform: scale(1.1); }
-
-        /* FOOTER */
-        footer { padding: 60px 20px; text-align: center; border-top: 1px solid #eee; background: white; }
-        .footer-logo { height: 40px; margin-bottom: 20px; opacity: 0.7; }
-        .footer-text { font-size: 0.7rem; letter-spacing: 3px; color: #999; text-transform: uppercase; }
 
         /* MODAL */
         .modal { 
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
             background: rgba(0,0,0,0.6); display: none; justify-content: center; 
-            align-items: center; z-index: 2000; backdrop-filter: blur(4px);
+            align-items: center; z-index: 2000; 
         }
-        .modal-content { 
-            background: white; padding: 40px; width: 95%; max-width: 420px; 
-            border-radius: 10px; text-align: center; 
-        }
-        input, select { 
-            width: 100%; padding: 14px; margin: 10px 0; border: 1px solid #eee; 
-            border-radius: 5px; background: #fafafa; font-family: inherit;
-        }
-
-        @media (max-width: 768px) {
-            .nav-links { gap: 15px; }
-            .section { padding: 60px 5%; }
-        }
+        .modal-content { background: white; padding: 40px; width: 95%; max-width: 420px; border-radius: 10px; }
     </style>
 </head>
 <body>
@@ -180,21 +119,15 @@
     <a href="/"><img src="https://i.ibb.co/ZRFJmhvY/Logo.jpg" class="logo-img" alt="Kerly Nails"></a>
     <div class="nav-links">
         <a href="#servicios">Servicios</a>
-        <a href="#ubicacion" class="nav-icon-link" title="Ver Ubicación">
-            <i class="fa-solid fa-location-dot"></i>
-        </a>
-        <a href="/login" title="Admin"><i class="fa-solid fa-user-lock"></i></a>
+        <a href="#ubicacion"><i class="fa-solid fa-location-dot" style="color:var(--gold)"></i></a>
+        <a href="/login"><i class="fa-solid fa-user-lock"></i></a>
     </div>
 </nav>
-
-<a href="https://wa.me/56959257968" class="whatsapp-float" target="_blank">
-    <i class="fab fa-whatsapp"></i>
-</a>
 
 <header>
     <div>
         <p style="letter-spacing:10px; margin-bottom: 20px; font-size: 0.75rem; font-weight: 600;">CONCEPCIÓN, CHILE</p>
-        <h1>Kerly Nails Studio</h1>
+        <h1 style="font-family:'Playfair Display'; font-size:4rem;">Kerly Nails Studio</h1>
     </div>
 </header>
 
@@ -206,100 +139,24 @@
             <img src="{{ s.imagen_url }}" alt="{{ s.nombre }}">
             <h3>{{ s.nombre }}</h3>
             <p style="font-size: 0.85rem; color: #777; margin-bottom: 15px;">{{ s.descripcion }}</p>
-            <span class="price">${{ s.precio }}</span>
+            <span style="color:var(--gold); font-weight:600; display:block; margin-bottom:20px;">${{ s.precio }}</span>
             <button class="btn-reserva" onclick="openModal('{{ s.id }}', '{{ s.nombre }}')">Agendar Cita</button>
         </div>
         {% endfor %}
     </div>
 </section>
 
-<section class="section" id="ubicacion">
-    <h2 class="section-title">Ubicación</h2>
-    <p style="margin-bottom: 40px; color: #555; letter-spacing: 1px;">
-        <i class="fa-solid fa-map-pin" style="color: var(--gold);"></i> 
-        Barros Arana 514, Local 12, Concepción.
-    </p>
-    
-    <div class="map-container">
-        <iframe 
-            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3194.347525287611!2d-73.0514104!3d-36.8270133!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x9669b54455f9ef69%3A0x658e5c38faed2988!2sKerly%20nails%20studio!5e0!3m2!1ses-419!2scl!4v1713123456789!5m2!1ses-419!2scl" 
-            width="100%" 
-            height="100%" 
-            style="border:0;" 
-            allowfullscreen="" 
-            loading="lazy">
-        </iframe>
-    </div>
-</section>
-
-<div class="modal" id="modalReserva">
-    <div class="modal-content">
-        <h2 id="modalTitle" style="font-family:'Playfair Display'; color:var(--gold); margin-bottom:20px;"></h2>
-        <form action="/reservar_sin_login" method="POST">
-            <input type="hidden" name="servicio_id" id="serviceId">
-            <input type="text" name="nombre_cliente" placeholder="Tu nombre" required>
-            <input type="tel" name="telefono" placeholder="WhatsApp (ej: 912345678)" required>
-            <input type="date" name="fecha" id="datePicker" required onchange="updateHours()">
-            <select name="hora" id="hourSelect" required>
-                <option value="" disabled selected>Elige un día primero</option>
-            </select>
-            <button type="submit" class="btn-reserva" style="margin-top:20px; background: var(--black); color: white; border: none;">Confirmar Cita</button>
-            <button type="button" onclick="closeModal()" style="background:none; border:none; margin-top:15px; cursor:pointer; color:#bbb; font-size: 0.75rem; letter-spacing: 1px;">CERRAR</button>
-        </form>
-    </div>
-</div>
-
 <footer>
     <img src="https://i.ibb.co/ZRFJmhvY/Logo.jpg" class="footer-logo" alt="Logo">
-    <p class="footer-text">Kerly Nails Studio © 2026</p>
+    <p style="font-size:0.7rem; color:#999; letter-spacing:2px;">KERLY NAILS STUDIO © 2026</p>
 </footer>
 
 <script>
-    // Configurar fecha mínima hoy
-    const today = new Date().toISOString().split('T')[0];
-    document.getElementById('datePicker').setAttribute('min', today);
-
     function openModal(id, name) { 
-        document.getElementById('serviceId').value = id; 
         document.getElementById('modalTitle').innerText = name; 
         document.getElementById('modalReserva').style.display='flex'; 
     }
-
-    function closeModal() { 
-        document.getElementById('modalReserva').style.display='none'; 
-    }
-
-    function updateHours() {
-        const dateInput = document.getElementById('datePicker').value;
-        const select = document.getElementById('hourSelect');
-        const day = new Date(dateInput + "T00:00:00").getDay();
-        
-        select.innerHTML = '';
-        let hours = [];
-
-        // Horarios del Studio
-        if (day >= 1 && day <= 5) { // Lun-Vie: 09:30 a 19:30
-            hours = ["09:30", "11:00", "12:30", "14:00", "15:30", "17:00", "18:30"];
-        } else if (day === 6) { // Sáb: 09:30 a 14:00
-            hours = ["09:30", "11:00", "12:30"];
-        } else {
-            alert("Los domingos el estudio permanece cerrado.");
-            document.getElementById('datePicker').value = "";
-            return;
-        }
-
-        hours.forEach(h => {
-            let opt = document.createElement("option");
-            opt.value = h;
-            opt.text = h;
-            select.add(opt);
-        });
-    }
-
-    window.onclick = function(event) {
-        if (event.target == document.getElementById('modalReserva')) { closeModal(); }
-    }
+    function closeModal() { document.getElementById('modalReserva').style.display='none'; }
 </script>
-
 </body>
 </html>
