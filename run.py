@@ -64,22 +64,21 @@ def reservar_sin_login():
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
-        form_user = request.form.get('username')
-        form_pass = request.form.get('password')
+        u = request.form.get('username')
+        p = request.form.get('password')
         
-        # Consultamos usando el nuevo nombre de columna
+        # Consultamos a la NUEVA TABLA acceso_admin
         try:
-            user = execute_query("SELECT * FROM usuarios WHERE usuario_admin = %s", (form_user,))
+            res = execute_query("SELECT * FROM acceso_admin WHERE login_user = %s", (u,))
             
-            if user and len(user) > 0:
-                # Comparación directa (temporal)
-                if user[0]['password_hash'] == form_pass:
-                    session.update({'user_id': user[0]['id'], 'rol': user[0]['rol']})
+            if res and len(res) > 0:
+                if res[0]['login_pass'] == p:
+                    session.update({'user_id': res[0]['id'], 'rol': res[0]['rol']})
                     return redirect(url_for('admin_dashboard'))
             
-            flash("Usuario o contraseña incorrectos.")
+            flash("Credenciales incorrectas")
         except Exception as e:
-            flash(f"Error de sistema: {str(e)}")
+            flash(f"Error de conexión: {str(e)}")
             
     return render_template("login.html")
 
