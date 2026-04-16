@@ -71,20 +71,16 @@ def login():
         u = request.form.get('username')
         p = request.form.get('password')
         
-        # Consultamos a la NUEVA TABLA acceso_admin para evitar errores de columna
-        try:
-            res = execute_query("SELECT * FROM acceso_admin WHERE login_user = %s", (u,))
-            
-            if res and len(res) > 0:
-                # Comparación directa temporal para asegurar el acceso
-                if res[0]['login_pass'] == p:
-                    session.update({'user_id': res[0]['id'], 'rol': res[0]['rol']})
-                    return redirect(url_for('admin_dashboard'))
-            
-            flash("Credenciales incorrectas")
-        except Exception as e:
-            flash(f"Error de conexión: {str(e)}")
-            
+        # Usamos los nombres exactos de tu captura de pantalla
+        res = execute_query("SELECT * FROM acceso_admin WHERE login_user = %s", (u,))
+        
+        if res and len(res) > 0:
+            # Comparamos con 'login_pass' que es el nombre en tu imagen
+            if res[0]['login_pass'] == p:
+                session.update({'user_id': res[0]['id'], 'rol': res[0]['rol']})
+                return redirect(url_for('admin_dashboard'))
+        
+        flash("Credenciales incorrectas")
     return render_template("login.html")
 
 @app.route("/admin")
