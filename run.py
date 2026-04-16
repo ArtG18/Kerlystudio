@@ -83,14 +83,21 @@ def login():
 
 @app.route("/admin")
 def admin_dashboard():
-    # Verificación de seguridad
     if session.get('rol') != 'admin': 
         return redirect(url_for('login'))
         
-    # Obtención de datos para el panel organizado
-    citas = execute_query("SELECT * FROM citas ORDER BY fecha DESC, hora DESC")
-    servicios = execute_query("SELECT * FROM servicios ORDER BY id ASC")
-    return render_template("admin_dashboard.html", citas=citas, servicios=servicios)
+    try:
+        citas = execute_query("SELECT * FROM citas ORDER BY fecha DESC")
+        servicios = execute_query("SELECT * FROM servicios ORDER BY id ASC")
+        
+
+        if citas and len(citas) > 0:
+            print(f"DEBUG - Columnas encontradas en citas: {citas[0].keys()}")
+            
+        return render_template("admin_dashboard.html", citas=citas, servicios=servicios)
+    except Exception as e:
+        print(f"Error detectado: {e}")
+        return f"Error en columnas: {e}. Revisa los logs de Render."
 
 # --- ACCIONES DEL PANEL ---
 
