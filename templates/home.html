@@ -126,7 +126,11 @@
     <div class="grid">
         {% for s in servicios %}
         <div class="card">
-            <img src="{{ url_for('static', filename='img/' + s.imagen) }}" alt="{{ s.nombre }}">
+            {% if s.imagen %}
+                <img src="{{ url_for('static', filename='img/' + s.imagen) }}" alt="{{ s.nombre }}">
+            {% else %}
+                <img src="{{ url_for('static', filename='img/default.jpg') }}" alt="Sin imagen">
+            {% endif %}
             <h3>{{ s.nombre }}</h3>
             <p style="font-size: 0.8rem; color: var(--gold); font-weight: 600; margin-bottom: 10px;">🕒 {{ s.duracion_min }} min</p>
             <p style="font-size: 0.85rem; color: #777; margin-bottom: 15px;">{{ s.descripcion }}</p>
