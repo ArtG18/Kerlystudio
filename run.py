@@ -33,6 +33,7 @@ def execute_query(query, params=None):
 # --- RUTAS DE CLIENTE ---
 @app.route("/")
 def home():
+    # Obtenemos servicios con sus URL de imagen
     servicios = execute_query("SELECT * FROM servicios WHERE activo = TRUE ORDER BY id ASC")
     return render_template("home.html", servicios=servicios)
 
@@ -83,25 +84,21 @@ def login():
 @app.route("/admin")
 def admin_dashboard():
     if session.get('rol') != 'admin': return redirect(url_for('login'))
-    
-    # SOLUCIÓN AL ERROR: Ordenamos solo por fecha. 
-    # Esto evita el error si hay problemas con el nombre de la columna 'hora'.
     citas = execute_query("SELECT * FROM citas ORDER BY fecha DESC")
     servicios = execute_query("SELECT * FROM servicios ORDER BY id ASC")
-    
     return render_template("admin_dashboard.html", citas=citas, servicios=servicios)
 
 @app.route("/admin/update_servicio", methods=["POST"])
 def update_servicio():
     if session.get('rol') != 'admin': return redirect(url_for('login'))
     f = request.form
-    # Aquí usamos duracion_min porque existe en la tabla servicios
+    # Actualización única de servicio con imagen_url
     execute_query("""
         UPDATE servicios 
         SET nombre = %s, descripcion = %s, precio = %s, imagen_url = %s, duracion_min = %s
         WHERE id = %s
     """, (f['nombre'], f['descripcion'], f['precio'], f['imagen_url'], f.get('duracion_min', 60), f['id']))
-    flash("Servicio actualizado.")
+    flash("Catálogo actualizado.")
     return redirect(url_for('admin_dashboard'))
 
 @app.route("/admin/delete_cita/<int:id>")
