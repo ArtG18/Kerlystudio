@@ -33,9 +33,16 @@ def execute_query(query, params=None):
 # --- RUTAS DE CLIENTE ---
 @app.route("/")
 def home():
-    # Cambiamos la consulta para usar la columna 'imagen'
+    # Obtenemos los servicios activos
     servicios = execute_query("SELECT * FROM servicios WHERE activo = TRUE ORDER BY id ASC")
     return render_template("home.html", servicios=servicios)
+
+@app.route("/get_horas_ocupadas/<fecha>")
+def get_horas_ocupadas(fecha):
+    # Consulta de horas ocupadas para el calendario
+    citas = execute_query("SELECT hora FROM citas WHERE fecha = %s AND estado != 'cancelado'", (fecha,))
+    horas_ocupadas = [c['hora'] for c in citas] if citas else []
+    return jsonify(horas_ocupadas)
 
 @app.route("/reservar_sin_login", methods=["POST"])
 def reservar_sin_login():
@@ -49,11 +56,13 @@ def reservar_sin_login():
     servicio_info = execute_query("SELECT nombre FROM servicios WHERE id = %s", (servicio_id,))
     nombre_servicio = servicio_info[0]['nombre'] if servicio_info else "Servicio"
 
+    # Inserción en tabla citas usando la columna 'hora'
     execute_query("""
         INSERT INTO citas (nombre, telefono, servicio, fecha, hora, estado) 
         VALUES (%s, %s, %s, %s, %s, 'pendiente')
     """, (nombre_cliente, telefono, nombre_servicio, fecha, hora))
 
+    # Redirección a WhatsApp
     numero_wa = "56959257968"
     mensaje = (f"¡Hola Kerly! ✨ Quiero agendar una cita:\n\n"
                f"👤 *Cliente:* {nombre_cliente}\n"
@@ -63,12 +72,6 @@ def reservar_sin_login():
                f"¿Está disponible?")
     
     return redirect(f"https://wa.me/{numero_wa}?text={mensaje.replace(' ', '%20').replace('\n', '%0A')}")
-
-@app.route("/get_horas_ocupadas/<fecha>")
-def get_horas_ocupadas(fecha):
-    citas = execute_query("SELECT hora FROM citas WHERE fecha = %s AND estado != 'cancelado'", (fecha,))
-    horas_ocupadas = [c['hora'] for c in citas] if citas else []
-    return jsonify(horas_ocupadas)
 
 # --- RUTAS DE ADMINISTRACIÓN ---
 @app.route("/login", methods=["GET", "POST"])
@@ -84,6 +87,7 @@ def login():
 @app.route("/admin")
 def admin_dashboard():
     if session.get('rol') != 'admin': return redirect(url_for('login'))
+    # Ordenamos por fecha para el panel
     citas = execute_query("SELECT * FROM citas ORDER BY fecha DESC")
     servicios = execute_query("SELECT * FROM servicios ORDER BY id ASC")
     return render_template("admin_dashboard.html", citas=citas, servicios=servicios)
@@ -92,12 +96,13 @@ def admin_dashboard():
 def update_servicio():
     if session.get('rol') != 'admin': return redirect(url_for('login'))
     f = request.form
-    # CORRECCIÓN: Usamos 'imagen' en lugar de 'imagen_url'
+    # Actualizamos ambas columnas de imagen para asegurar compatibilidad
     execute_query("""
         UPDATE servicios 
-        SET nombre = %s, descripcion = %s, precio = %s, imagen = %s, duracion_min = %s
+        SET nombre = %s, descripcion = %s, precio = %s, imagen = %s, imagen_url = %s, duracion_min = %s
         WHERE id = %s
-    """, (f['nombre'], f['descripcion'], f['precio'], f['imagen'], f.get('duracion_min', 60), f['id']))
+    """, (f['nombre'], f['descripcion'], f['precio'], f['imagen'], f['imagen'], f.get('duracion_min', 60), f['id']))
+    
     flash("Servicio actualizado correctamente.")
     return redirect(url_for('admin_dashboard'))
 
