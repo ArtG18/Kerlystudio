@@ -33,7 +33,7 @@ def execute_query(query, params=None):
 # --- RUTAS DE CLIENTE ---
 @app.route("/")
 def home():
-    # Obtenemos servicios con sus URL de imagen
+    # Cambiamos la consulta para usar la columna 'imagen'
     servicios = execute_query("SELECT * FROM servicios WHERE activo = TRUE ORDER BY id ASC")
     return render_template("home.html", servicios=servicios)
 
@@ -92,13 +92,13 @@ def admin_dashboard():
 def update_servicio():
     if session.get('rol') != 'admin': return redirect(url_for('login'))
     f = request.form
-    # Actualización única de servicio con imagen_url
+    # CORRECCIÓN: Usamos 'imagen' en lugar de 'imagen_url'
     execute_query("""
         UPDATE servicios 
-        SET nombre = %s, descripcion = %s, precio = %s, imagen_url = %s, duracion_min = %s
+        SET nombre = %s, descripcion = %s, precio = %s, imagen = %s, duracion_min = %s
         WHERE id = %s
-    """, (f['nombre'], f['descripcion'], f['precio'], f['imagen_url'], f.get('duracion_min', 60), f['id']))
-    flash("Catálogo actualizado.")
+    """, (f['nombre'], f['descripcion'], f['precio'], f['imagen'], f.get('duracion_min', 60), f['id']))
+    flash("Servicio actualizado correctamente.")
     return redirect(url_for('admin_dashboard'))
 
 @app.route("/admin/delete_cita/<int:id>")
